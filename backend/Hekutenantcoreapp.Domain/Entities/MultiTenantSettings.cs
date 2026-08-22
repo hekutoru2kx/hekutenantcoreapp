@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Hekutenantcoreapp.Domain.Entities;
 
 // A singleton row (Id is always 1 — seeded once at startup by MultiTenantSettingsSeeder, never
-// created/deleted through the API), same tier as DatabaseKeepAliveSettings. Drives the tenant
-// resolution AuthService.ResolveAndMintAsync performs at login/registration.
+// created/deleted through the API). Drives the tenant resolution AuthService.ResolveAndMintAsync
+// performs at login/registration.
 [Table("multi_tenant_settings")]
 public class MultiTenantSettings : AuditableEntity
 {

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Hekutenantcoreapp.Infrastructure.Migrations
 {
     [DbContext(typeof(HekutenantcoreappDbContext))]
-    [Migration("20260822000519_InitialCreate")]
+    [Migration("20260822032210_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -155,73 +155,6 @@ namespace Hekutenantcoreapp.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("countries");
-                });
-
-            modelBuilder.Entity("Hekutenantcoreapp.Domain.Entities.DatabaseKeepAliveSettings", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<TimeSpan>("ActiveEndTime")
-                        .HasColumnType("interval")
-                        .HasColumnName("active_end_time");
-
-                    b.Property<TimeSpan>("ActiveStartTime")
-                        .HasColumnType("interval")
-                        .HasColumnName("active_start_time");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("created_by");
-
-                    b.Property<int>("GmtOffsetHours")
-                        .HasColumnType("integer")
-                        .HasColumnName("gmt_offset_hours");
-
-                    b.Property<int>("IntervalAmount")
-                        .HasColumnType("integer")
-                        .HasColumnName("interval_amount");
-
-                    b.Property<string>("IntervalUnit")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValue("Minutes")
-                        .HasColumnName("interval_unit");
-
-                    b.Property<bool>("IsEnabled")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_enabled");
-
-                    b.Property<DateTime?>("LastPingAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_ping_at");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<string>("UpdatedBy")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("updated_by");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("UpdatedAt");
-
-                    b.ToTable("database_keep_alive_settings");
                 });
 
             modelBuilder.Entity("Hekutenantcoreapp.Domain.Entities.DeletedAccount", b =>

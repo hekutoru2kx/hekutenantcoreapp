@@ -144,9 +144,6 @@
   <data name="ExportTooLarge" xml:space="preserve">
     <value>Esta búsqueda coincide con demasiadas filas para exportar (máximo {0}). Reduce la búsqueda e intenta de nuevo.</value>
   </data>
-  <data name="DatabaseKeepAliveSettingsNotFound" xml:space="preserve">
-    <value>Configuración de mantenimiento de base de datos no encontrada</value>
-  </data>
   <data name="MultiTenantSettingsNotFound" xml:space="preserve">
     <value>Configuración multi-tenant no encontrada</value>
   </data>

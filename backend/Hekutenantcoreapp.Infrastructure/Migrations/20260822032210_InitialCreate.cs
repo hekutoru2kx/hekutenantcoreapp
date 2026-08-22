@@ -47,29 +47,6 @@ namespace Hekutenantcoreapp.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "database_keep_alive_settings",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    is_enabled = table.Column<bool>(type: "boolean", nullable: false),
-                    interval_amount = table.Column<int>(type: "integer", nullable: false),
-                    interval_unit = table.Column<string>(type: "text", nullable: false, defaultValue: "Minutes"),
-                    gmt_offset_hours = table.Column<int>(type: "integer", nullable: false),
-                    active_start_time = table.Column<TimeSpan>(type: "interval", nullable: false),
-                    active_end_time = table.Column<TimeSpan>(type: "interval", nullable: false),
-                    last_ping_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<string>(type: "text", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    updated_by = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_database_keep_alive_settings", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "deleted_accounts",
                 columns: table => new
                 {
@@ -659,16 +636,6 @@ namespace Hekutenantcoreapp.Infrastructure.Migrations
                 column: "state_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_database_keep_alive_settings_created_at",
-                table: "database_keep_alive_settings",
-                column: "created_at");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_database_keep_alive_settings_updated_at",
-                table: "database_keep_alive_settings",
-                column: "updated_at");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_deleted_accounts_created_at",
                 table: "deleted_accounts",
                 column: "created_at");
@@ -900,9 +867,6 @@ namespace Hekutenantcoreapp.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
-
-            migrationBuilder.DropTable(
-                name: "database_keep_alive_settings");
 
             migrationBuilder.DropTable(
                 name: "deleted_accounts");

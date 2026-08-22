@@ -29,7 +29,6 @@
     "systemUsers": "Users",
     "systemRoles": "Roles",
     "systemTenants": "Tenants",
-    "systemDatabaseKeepAlive": "Database Keep-Alive",
     "systemMultiTenantSettings": "Multi-Tenant Settings",
     "adminEmployees": "Employees",
     "adminRoles": "Roles",
@@ -137,22 +136,6 @@
       "title": "Tenant Management",
       "create": "New Tenant",
       "edit": "Edit Tenant"
-    },
-    "databaseKeepAlive": {
-      "title": "Database Keep-Alive",
-      "hint": "Runs a trivial query on the configured schedule, only within the active window, to prevent the database from auto-pausing during business hours.",
-      "enabled": "Enabled",
-      "intervalAmount": "Interval",
-      "intervalUnit": "Unit",
-      "unit_Minutes": "Minutes",
-      "unit_Hours": "Hours",
-      "gmtOffset": "Timezone (GMT offset)",
-      "activeStartTime": "Active window start",
-      "activeEndTime": "Active window end",
-      "lastPingAt": "Last ping",
-      "neverPinged": "Never pinged yet",
-      "save": "Save",
-      "saveSuccess": "Settings saved"
     },
     "multiTenantSettings": {
       "title": "Multi-Tenant Settings",

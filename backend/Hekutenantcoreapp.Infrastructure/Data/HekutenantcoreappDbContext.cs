@@ -24,9 +24,6 @@ public class HekutenantcoreappDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<UserTenantRole> UserTenantRoles => Set<UserTenantRole>();
     public DbSet<Employee> Employees => Set<Employee>();
 
-    // Global platform config — singleton row, see DatabaseKeepAliveSettings.
-    public DbSet<DatabaseKeepAliveSettings> DatabaseKeepAliveSettings => Set<DatabaseKeepAliveSettings>();
-
     // Global platform config — singleton row, see MultiTenantSettings.
     public DbSet<MultiTenantSettings> MultiTenantSettings => Set<MultiTenantSettings>();
 
@@ -120,17 +117,16 @@ public class HekutenantcoreappDbContext : IdentityDbContext<ApplicationUser>
 
         // Npgsql maps DateTime -> "timestamp with time zone" by default, which requires
         // DateTimeKind.Utc on every value written to (and compared against) that column — but
-        // this app's client-facing business-date fields (encounter/test dates, birthdays, etc.)
-        // travel the wire as naive "yyyy-MM-dd[THH:mm]" strings with no timezone designator, so
-        // they deserialize as Kind=Unspecified, matching how they were always stored under the
-        // old SQL Server "datetime" column (see shared/datetime-split.ts on the frontend). Map
-        // those specific properties to "timestamp without time zone" instead, which is fine with
+        // this app's client-facing business-date fields (birthdays, hire dates, etc.) travel the
+        // wire as naive "yyyy-MM-dd[THH:mm]" strings with no timezone designator, so they
+        // deserialize as Kind=Unspecified, matching how they were always stored under the old
+        // SQL Server "datetime" column (see shared/datetime-split.ts on the frontend). Map those
+        // specific properties to "timestamp without time zone" instead, which is fine with
         // Kind=Unspecified. Deliberately NOT a blanket "every DateTime" conversion — CreatedAt/
         // UpdatedAt and UserTenantRole.StartsAt/ExpiresAt/RevokedAt are genuine UTC instants
         // (server-stamped via DateTime.UtcNow and compared against it in the login/role-check
-        // query), and DatabaseKeepAliveSettings.LastPingAt is likewise server-stamped — all four
-        // must stay "timestamp with time zone" or those comparisons/writes start throwing the
-        // same Kind mismatch the other way around.
+        // query) and must stay "timestamp with time zone" or those comparisons/writes start
+        // throwing the same Kind mismatch the other way around.
         var naiveDateTimeProperties = new (Type EntityType, string PropertyName)[]
         {
             (typeof(Person), nameof(Person.Birthday)),

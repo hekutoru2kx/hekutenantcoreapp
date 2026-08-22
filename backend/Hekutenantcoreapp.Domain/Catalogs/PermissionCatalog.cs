@@ -11,7 +11,6 @@ public static class PermissionCatalog
         (nameof(PersonsPermission), typeof(PersonsPermission)),
         (nameof(TenantsPermission), typeof(TenantsPermission)),
         (nameof(EmployeesPermission), typeof(EmployeesPermission)),
-        (nameof(DatabaseKeepAlivePermission), typeof(DatabaseKeepAlivePermission)),
         (nameof(MultiTenantSettingsPermission), typeof(MultiTenantSettingsPermission)),
     ];
 }

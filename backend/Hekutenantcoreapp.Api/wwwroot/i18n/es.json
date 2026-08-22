@@ -29,7 +29,6 @@
     "systemUsers": "Usuarios",
     "systemRoles": "Roles",
     "systemTenants": "Entidades",
-    "systemDatabaseKeepAlive": "Mantenimiento de Base de Datos",
     "systemMultiTenantSettings": "Configuración Multi-Tenant",
     "adminEmployees": "Empleados",
     "adminRoles": "Roles",
@@ -137,22 +136,6 @@
       "title": "Gestión de entidades",
       "create": "Nueva entidad",
       "edit": "Editar entidad"
-    },
-    "databaseKeepAlive": {
-      "title": "Mantenimiento de Base de Datos",
-      "hint": "Ejecuta una consulta trivial según el horario configurado, solo dentro de la ventana activa, para evitar que la base de datos se pause automáticamente durante el horario laboral.",
-      "enabled": "Habilitado",
-      "intervalAmount": "Intervalo",
-      "intervalUnit": "Unidad",
-      "unit_Minutes": "Minutos",
-      "unit_Hours": "Horas",
-      "gmtOffset": "Zona horaria (desfase GMT)",
-      "activeStartTime": "Inicio de ventana activa",
-      "activeEndTime": "Fin de ventana activa",
-      "lastPingAt": "Última ejecución",
-      "neverPinged": "Aún no se ha ejecutado",
-      "save": "Guardar",
-      "saveSuccess": "Configuración guardada"
     },
     "multiTenantSettings": {
       "title": "Configuración Multi-Tenant",

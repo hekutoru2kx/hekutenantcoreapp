@@ -144,9 +144,6 @@
 <data name="ExportTooLarge" xml:space="preserve">
   <value>This search matches too many rows to export ({0} max). Narrow your search and try again.</value>
 </data>
-<data name="DatabaseKeepAliveSettingsNotFound" xml:space="preserve">
-  <value>Database keep-alive settings not found</value>
-</data>
 <data name="MultiTenantSettingsNotFound" xml:space="preserve">
   <value>Multi-tenant settings not found</value>
 </data>

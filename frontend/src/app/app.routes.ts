@@ -16,7 +16,6 @@ import { TenantManagement } from './pages/admin/tenant-management/tenant-managem
 import { EmployeeManagement } from './pages/admin/employee-management/employee-management';
 import { TenantRoleManagement } from './pages/admin/tenant-role-management/tenant-role-management';
 import { EmployeeRoleAssignment } from './pages/admin/employee-role-assignment/employee-role-assignment';
-import { DatabaseKeepAliveSettingsPage } from './pages/admin/database-keep-alive/database-keep-alive';
 import { MultiTenantSettingsPage } from './pages/admin/multi-tenant-settings/multi-tenant-settings';
 
 
@@ -31,7 +30,6 @@ export const routes: Routes = [
 
   // Platform (System)
   { path: 'system/platform/tenants', component: TenantManagement, canActivate: [authGuard, claimGuard('TenantsPermission', 'Read')] },
-  { path: 'system/platform/database-keep-alive', component: DatabaseKeepAliveSettingsPage, canActivate: [authGuard, claimGuard('DatabaseKeepAlivePermission', 'Read')] },
   { path: 'system/platform/multi-tenant-settings', component: MultiTenantSettingsPage, canActivate: [authGuard, claimGuard('MultiTenantSettingsPermission', 'Read')] },
 
   // Identity (System + Tenant)

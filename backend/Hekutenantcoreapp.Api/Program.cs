@@ -11,7 +11,6 @@ using System.Text;
 using System.Security.Claims;
 using Hekutenantcoreapp.Infrastructure.Email;
 using Hekutenantcoreapp.Infrastructure.Repositories;
-using Hekutenantcoreapp.Infrastructure.BackgroundServices;
 using Hekutenantcoreapp.Domain.Enums;
 using Hekutenantcoreapp.Domain.Enums.Permissions;
 using Hekutenantcoreapp.Domain.Catalogs;
@@ -93,10 +92,6 @@ builder.Services.AddScoped<ITenantRoleService, TenantRoleService>();
 builder.Services.AddScoped<ITenantRoleRepository, TenantRoleRepository>();
 //Generic content-translation repository (LocalizedText) — reusable across any entity/field
 builder.Services.AddScoped<ILocalizedTextRepository, LocalizedTextRepository>();
-//Database keep-alive scheduler (SuperAdmin-only, singleton settings row) + its background pinger
-builder.Services.AddScoped<IDatabaseKeepAliveService, DatabaseKeepAliveService>();
-builder.Services.AddScoped<IDatabaseKeepAliveRepository, DatabaseKeepAliveRepository>();
-builder.Services.AddHostedService<DatabaseKeepAliveHostedService>();
 //Multi-tenant settings (SuperAdmin-only, singleton settings row) — drives AuthService's tenant resolution
 builder.Services.AddScoped<IMultiTenantSettingsService, MultiTenantSettingsService>();
 builder.Services.AddScoped<IMultiTenantSettingsRepository, MultiTenantSettingsRepository>();
@@ -166,10 +161,6 @@ using (var scope = app.Services.CreateScope())
     // Person/Tenant/TenantMembership rows below are FK'd to these.
     await EnumLookupSeeder.SeedAllAsync(db);
 
-    // Database keep-alive singleton settings row (seeded disabled) — read/updated by the
-    // SuperAdmin-only admin page and polled by DatabaseKeepAliveHostedService.
-    await DatabaseKeepAliveSettingsSeeder.SeedAsync(db);
-
     // Multi-tenant settings singleton row (seeded with both flags off, no default tenant) —
     // read/updated by the SuperAdmin-only admin page and consulted by AuthService at login.
     await MultiTenantSettingsSeeder.SeedAsync(db);
@@ -200,7 +191,7 @@ using (var scope = app.Services.CreateScope())
     var adminRole = await roleManager.FindByNameAsync("Admin");
     if (adminRole != null)
     {
-        var globalOnlyModules = new[] { nameof(TenantsPermission), nameof(RolesPermission), nameof(UserManagementPermission), nameof(DatabaseKeepAlivePermission), nameof(MultiTenantSettingsPermission) };
+        var globalOnlyModules = new[] { nameof(TenantsPermission), nameof(RolesPermission), nameof(UserManagementPermission), nameof(MultiTenantSettingsPermission) };
 
         var adminClaims = await roleManager.GetClaimsAsync(adminRole);
 
