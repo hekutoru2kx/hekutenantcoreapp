@@ -1,0 +1,118 @@
+<div class="employee-role-assignment">
+  <div class="header">
+    <h2>{{ 'admin.employees.manageRoles' | transloco }}: {{ employeeName() }}</h2>
+    <button mat-flat-button [disabled]="loading()" (click)="openAddRole()">
+      <mat-icon>add</mat-icon>
+      {{ 'admin.employees.addRole' | transloco }}
+    </button>
+  </div>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  } @else {
+    <div class="table-container">
+    <table mat-table [dataSource]="rows()">
+      <ng-container matColumnDef="roleName">
+        <th mat-header-cell *matHeaderCellDef>{{ 'admin.roles.roleName' | transloco }}</th>
+        <td mat-cell *matCellDef="let row">{{ row.roleName }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="startsAt">
+        <th mat-header-cell *matHeaderCellDef>{{ 'admin.employees.startsAt' | transloco }}</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="date-cell-wrapper">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-cell">
+              <input matInput [matDatepicker]="startsPicker" [value]="row.startsAt"
+                (dateChange)="setStartsAt(row, $event.value)">
+              <mat-datepicker-toggle matSuffix [for]="startsPicker"></mat-datepicker-toggle>
+              <mat-datepicker #startsPicker></mat-datepicker>
+            </mat-form-field>
+            @if (row.startsAt) {
+              <button mat-icon-button type="button" [matTooltip]="'admin.employees.clearExpiry' | transloco"
+                (click)="setStartsAt(row, null)">
+                <mat-icon>clear</mat-icon>
+              </button>
+            }
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="expiresAt">
+        <th mat-header-cell *matHeaderCellDef>{{ 'admin.employees.expiresAt' | transloco }}</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="date-cell-wrapper">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-cell">
+              <input matInput [matDatepicker]="expiresPicker" [value]="row.expiresAt"
+                (dateChange)="setExpiresAt(row, $event.value)">
+              <mat-datepicker-toggle matSuffix [for]="expiresPicker"></mat-datepicker-toggle>
+              <mat-datepicker #expiresPicker></mat-datepicker>
+            </mat-form-field>
+            @if (row.expiresAt) {
+              <button mat-icon-button type="button" [matTooltip]="'admin.employees.clearExpiry' | transloco"
+                (click)="setExpiresAt(row, null)">
+                <mat-icon>clear</mat-icon>
+              </button>
+            }
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef>{{ 'admin.employees.createdAt' | transloco }}</th>
+        <td mat-cell *matCellDef="let row">
+          {{ row.createdAt ? (row.createdAt | date: 'yyyy-MM-dd hh:mm a') : '—' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="createdBy">
+        <th mat-header-cell *matHeaderCellDef>{{ 'admin.employees.createdBy' | transloco }}</th>
+        <td mat-cell *matCellDef="let row">{{ row.createdByName || '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="updatedAt">
+        <th mat-header-cell *matHeaderCellDef>{{ 'admin.employees.updatedAt' | transloco }}</th>
+        <td mat-cell *matCellDef="let row">
+          {{ row.updatedAt ? (row.updatedAt | date: 'yyyy-MM-dd hh:mm a') : '—' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="updatedBy">
+        <th mat-header-cell *matHeaderCellDef>{{ 'admin.employees.updatedBy' | transloco }}</th>
+        <td mat-cell *matCellDef="let row">{{ row.updatedByName || '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>{{ 'admin.employees.status' | transloco }}</th>
+        <td mat-cell *matCellDef="let row">
+          <mat-chip [class]="'status-' + rowStatus(row)">
+            {{ ('admin.employees.status_' + rowStatus(row)) | transloco }}
+          </mat-chip>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>{{ 'admin.roles.actions' | transloco }}</th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button
+            [matTooltip]="(row.markedForRemoval ? 'admin.employees.undoRemove' : 'admin.employees.removeRole') | transloco"
+            (click)="toggleRemove(row)">
+            <mat-icon>{{ row.markedForRemoval ? 'undo' : 'delete' }}</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+    </div>
+  }
+
+  <div class="actions">
+    <a mat-stroked-button routerLink="/admin/organization/employees">{{ 'persons.cancel' | transloco }}</a>
+    <button mat-flat-button (click)="save()" [disabled]="saving() || loading()">{{ 'persons.save' | transloco }}</button>
+  </div>
+</div>

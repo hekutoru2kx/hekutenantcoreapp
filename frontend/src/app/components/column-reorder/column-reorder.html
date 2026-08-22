@@ -1,0 +1,10 @@
+<div class="column-reorder-list" cdkDropList cdkDropListOrientation="horizontal" (cdkDropListDropped)="onDrop($event)">
+  @for (col of columns(); track col.key) {
+    <div class="column-chip" [class.hidden-column]="col.hidden" cdkDrag>
+      <mat-icon class="drag-handle" cdkDragHandle>drag_indicator</mat-icon>
+      <mat-checkbox [checked]="!col.hidden" (change)="visibilityToggle.emit(col.key)">
+        {{ col.label }}
+      </mat-checkbox>
+    </div>
+  }
+</div>

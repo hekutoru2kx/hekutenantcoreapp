@@ -1,0 +1,77 @@
+<div class="database-keep-alive">
+  <div class="header">
+    <h2>{{ 'admin.databaseKeepAlive.title' | transloco }}</h2>
+  </div>
+
+  <p class="hint">{{ 'admin.databaseKeepAlive.hint' | transloco }}</p>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  @if (successMessage()) {
+    <p class="success">{{ successMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+
+  <mat-card class="form-card">
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-slide-toggle formControlName="isEnabled">
+          {{ 'admin.databaseKeepAlive.enabled' | transloco }}
+        </mat-slide-toggle>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'admin.databaseKeepAlive.intervalAmount' | transloco }}</mat-label>
+            <input matInput type="number" min="1" formControlName="intervalAmount">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'admin.databaseKeepAlive.intervalUnit' | transloco }}</mat-label>
+            <mat-select formControlName="intervalUnit">
+              @for (unit of intervalUnits; track unit) {
+                <mat-option [value]="unit">{{ 'admin.databaseKeepAlive.unit_' + unit | transloco }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'admin.databaseKeepAlive.gmtOffset' | transloco }}</mat-label>
+            <mat-select formControlName="gmtOffsetHours">
+              @for (offset of gmtOffsets; track offset) {
+                <mat-option [value]="offset">GMT{{ offset >= 0 ? '+' : '' }}{{ offset }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'admin.databaseKeepAlive.activeStartTime' | transloco }}</mat-label>
+            <input matInput type="time" formControlName="activeStartTime">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'admin.databaseKeepAlive.activeEndTime' | transloco }}</mat-label>
+            <input matInput type="time" formControlName="activeEndTime">
+          </mat-form-field>
+        </div>
+
+        <p class="last-ping">
+          {{ 'admin.databaseKeepAlive.lastPingAt' | transloco }}:
+          {{ lastPingAt() ? (lastPingAt() | date:'yyyy-MM-dd HH:mm:ss') : ('admin.databaseKeepAlive.neverPinged' | transloco) }}
+        </p>
+
+        <div class="form-actions">
+          <button mat-flat-button type="submit" [disabled]="form.invalid || saving()">
+            {{ 'admin.databaseKeepAlive.save' | transloco }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,130 @@
+<div class="person-management">
+  <div class="header">
+    <h2>{{ 'persons.title' | transloco }}</h2>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="showColumnMenu.set(!showColumnMenu())">
+        <mat-icon>view_column</mat-icon>
+        {{ 'common.columns' | transloco }}
+      </button>
+      <button mat-stroked-button (click)="exportPersons()">
+        <mat-icon>download</mat-icon>
+        {{ 'common.export' | transloco }}
+      </button>
+      @if (canCreatePerson()) {
+        <button mat-flat-button (click)="toggleForm()">
+          <mat-icon>{{ showForm() && !editingPerson() ? 'close' : 'person_add' }}</mat-icon>
+          {{ showForm() && !editingPerson() ? ('persons.cancel' | transloco) : ('persons.create' | transloco) }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (showColumnMenu()) {
+    <mat-card class="column-menu-card">
+      <p class="hint">{{ 'common.reorderColumnsHint' | transloco }}</p>
+      <app-column-reorder [columns]="reorderableColumns()" (orderChange)="onColumnsReordered($event)" (visibilityToggle)="onColumnVisibilityToggled($event)" />
+    </mat-card>
+  }
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  @if (showForm()) {
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>
+          {{ editingPerson() ? ('persons.edit' | transloco) : ('persons.create' | transloco) }}
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <app-person-form
+          [personData]="editingPersonFormData()"
+          (saved)="onPersonSaved($event)"
+          (cancelled)="onPersonCancelled()">
+        </app-person-form>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>{{ 'admin.users.search' | transloco }}</mat-label>
+    <input matInput [formControl]="searchControl">
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+  <table mat-table [dataSource]="persons()" matSort (matSortChange)="onSortChange($event)">
+    <ng-container matColumnDef="lastName">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="lastName">{{ 'persons.lastName' | transloco }}</th>
+      <td mat-cell *matCellDef="let person">{{ person.lastName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="firstName">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="firstName">{{ 'persons.firstName' | transloco }}</th>
+      <td mat-cell *matCellDef="let person">{{ person.firstName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="document">
+      <th mat-header-cell *matHeaderCellDef>{{ 'persons.document' | transloco }}</th>
+      <td mat-cell *matCellDef="let person">
+        @if (person.documentType && person.documentId) {
+          {{ 'persons.docType_' + person.documentType + '_code' | transloco }}: {{ person.documentId }}
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="phone">
+      <th mat-header-cell *matHeaderCellDef>{{ 'persons.phone' | transloco }}</th>
+      <td mat-cell *matCellDef="let person">
+        {{ person.phone }}{{ person.phoneExtension ? ' ext. ' + person.phoneExtension : '' }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="email">{{ 'persons.email' | transloco }}</th>
+      <td mat-cell *matCellDef="let person">{{ person.email }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="location">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="countryId">{{ 'profile.location' | transloco }}</th>
+      <td mat-cell *matCellDef="let person">{{ person.countryName }}, {{person.stateName}}, {{person.cityName}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.users.actions' | transloco }}</th>
+      <td mat-cell *matCellDef="let person">
+        <button mat-icon-button
+          [matTooltip]="person.linkedUserName ? person.linkedUserName : ('persons.notLinked' | transloco)">
+          <mat-icon [class]="person.linkedUserName ? 'active' : 'inactive'">
+            {{ person.linkedUserName ? 'link' : 'link_off' }}
+          </mat-icon>
+        </button>
+        @if (canUpdatePerson() && person.linkedUserName) {
+          <button mat-icon-button
+            [matTooltip]="(person.membershipStatus === 'Suspended' ? 'persons.reactivateAccess' : 'persons.suspendAccess') | transloco"
+            (click)="toggleAccess(person)">
+            <mat-icon>{{ person.membershipStatus === 'Suspended' ? 'check_circle' : 'block' }}</mat-icon>
+          </button>
+        }
+        @if (canUpdatePerson()) {
+          <button mat-icon-button [matTooltip]="'persons.edit' | transloco" (click)="toggleForm(person)">
+            <mat-icon>edit</mat-icon>
+          </button>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns();"></tr>
+  </table>
+
+  <mat-paginator
+    [length]="totalCount()"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="pageSizeOptions"
+    (page)="onPageChange($event)">
+  </mat-paginator>
+</div>

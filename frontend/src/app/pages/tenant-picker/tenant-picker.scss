@@ -1,0 +1,26 @@
+.tenant-picker-container {
+  display: flex;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+mat-card {
+  max-width: 480px;
+  width: 100%;
+}
+
+.error {
+  color: var(--mat-sys-error);
+  font-size: 13px;
+  margin: 0;
+}
+
+.search-field {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.hint {
+  color: var(--mat-sys-on-surface-variant, gray);
+  font-size: 13px;
+}

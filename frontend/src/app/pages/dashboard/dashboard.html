@@ -1,0 +1,19 @@
+<div class="dashboard">
+  <header class="welcome">
+    <h1>{{ 'dashboard.welcome' | transloco }}, {{ auth.currentUser()?.userName }}</h1>
+  </header>
+
+  <div class="sections">
+    @if (isAdmin) {
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>admin_panel_settings</mat-icon>
+          <mat-card-title>{{ 'dashboard.admin.title' | transloco }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="empty-state">{{ 'dashboard.admin.empty' | transloco }}</p>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+</div>

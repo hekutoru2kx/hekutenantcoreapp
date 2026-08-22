@@ -1,0 +1,32 @@
+<div class="tenant-role-management">
+  <div class="header">
+    <h2>{{ 'admin.tenantRoles.title' | transloco }}</h2>
+  </div>
+
+  <p class="hint">{{ 'admin.tenantRoles.hint' | transloco }}</p>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  <table mat-table [dataSource]="roles()">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.roles.roleName' | transloco }}</th>
+      <td mat-cell *matCellDef="let role">{{ role.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="claims">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.roles.claims' | transloco }}</th>
+      <td mat-cell *matCellDef="let role">
+        <mat-chip-set>
+          @for (claim of role.claims; track claim.module + claim.action) {
+            <mat-chip>{{ claim.module }}.{{ claim.action }}</mat-chip>
+          }
+        </mat-chip-set>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</div>

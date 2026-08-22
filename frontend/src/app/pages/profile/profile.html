@@ -1,0 +1,105 @@
+<div class="profile-container">
+
+  <!-- Account Preferences -->
+  <mat-card>
+    <mat-card-header>
+      <mat-icon mat-card-avatar>account_circle</mat-icon>
+      <mat-card-title>{{ 'profile.title' | transloco }}</mat-card-title>
+      <mat-card-subtitle>{{ auth.currentUser()?.email }}</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (errorMessage()) {
+        <p class="error">{{ errorMessage() }}</p>
+      }
+      @if (successMessage()) {
+        <p class="success">{{ successMessage() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'auth.userName' | transloco }}</mat-label>
+          <input matInput formControlName="userName">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'auth.email' | transloco }}</mat-label>
+          <input matInput type="email" formControlName="email">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'profile.language' | transloco }}</mat-label>
+          <mat-select formControlName="preferredLanguage">
+            @for (lang of availableLanguages; track lang.code) {
+              <mat-option [value]="lang.code">{{ lang.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'profile.theme' | transloco }}</mat-label>
+          <mat-select formControlName="preferredTheme">
+            @for (option of theme.availableColorThemes; track option.value) {
+              <mat-option [value]="option.value">{{ option.labelKey | transloco }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (availableTenants().length > 1) {
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'profile.defaultTenant' | transloco }}</mat-label>
+            <mat-select formControlName="defaultTenantId">
+              <mat-option [value]="null">{{ 'profile.noDefaultTenant' | transloco }}</mat-option>
+              @for (tenant of availableTenants(); track tenant.id) {
+                <mat-option [value]="tenant.id">{{ tenant.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+
+        <button mat-flat-button type="submit" [disabled]="form.invalid">
+          {{ 'profile.save' | transloco }}
+        </button>
+      </form>
+
+      <mat-divider></mat-divider>
+
+      <div class="password-section">
+        <p>{{ 'profile.passwordSection' | transloco }}</p>
+        <a mat-stroked-button routerLink="/change-password">
+          <mat-icon>lock</mat-icon>
+          {{ 'auth.changePasswordTitle' | transloco }}
+        </a>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Personal Information -->
+  <mat-card>
+    <mat-card-header>
+      <mat-icon mat-card-avatar>person</mat-icon>
+      <mat-card-title>{{ 'profile.personalInfo' | transloco }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (personErrorMessage()) {
+        <p class="error">{{ personErrorMessage() }}</p>
+      }
+      @if (personSuccessMessage()) {
+        <p class="success">{{ personSuccessMessage() }}</p>
+      }
+
+      @if (loadingPerson()) {
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      } @else {
+        <app-person-form
+          [personData]="personFormData()"
+          [showSaveButton]="true"
+          [checkExistingOnEmail]="!personFormData()"
+          (saved)="onPersonSaved($event)">
+        </app-person-form>
+      }
+    </mat-card-content>
+  </mat-card>
+
+</div>

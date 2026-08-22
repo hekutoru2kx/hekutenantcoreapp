@@ -1,0 +1,46 @@
+.multi-tenant-settings {
+  padding: 24px;
+  max-width: 720px;
+}
+
+.header {
+  margin-bottom: 8px;
+}
+
+.hint {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--mat-sys-on-surface-variant, gray);
+
+  &.forced {
+    font-style: italic;
+  }
+}
+
+.form-card {
+  margin-bottom: 24px;
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.toggle-row {
+  margin-top: 20px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.error {
+  color: var(--mat-sys-error);
+  font-size: 13px;
+}
+
+.success {
+  color: green;
+  font-size: 13px;
+}

@@ -1,0 +1,63 @@
+.employee-role-assignment {
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.table-container {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+table {
+  width: 100%;
+}
+
+.date-cell-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.date-cell {
+  width: 140px;
+  min-width: 140px;
+}
+
+mat-chip {
+  font-size: 12px;
+  min-height: 24px;
+}
+
+.status-active {
+  background-color: var(--mat-sys-tertiary-container, #d7f5dd);
+}
+
+.status-new {
+  background-color: var(--mat-sys-primary-container, #d6e3ff);
+}
+
+.status-pending {
+  background-color: var(--mat-sys-secondary-container, #e0e0e0);
+}
+
+.status-expired, .status-markedForRemoval {
+  background-color: var(--mat-sys-error-container, #ffdad6);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.error {
+  color: var(--mat-sys-error);
+  font-size: 13px;
+}

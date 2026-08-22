@@ -1,0 +1,6 @@
+@Hekutenantcoreapp.Api_HostAddress = http://localhost:5001
+
+GET {{Hekutenantcoreapp.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

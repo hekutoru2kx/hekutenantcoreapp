@@ -1,0 +1,26 @@
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 4px;
+  align-items: center;
+
+  mat-form-field {
+    flex: 1;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.error {
+  color: var(--mat-sys-error);
+  font-size: 13px;
+}

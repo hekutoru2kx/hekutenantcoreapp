@@ -1,0 +1,16 @@
+<mat-form-field appearance="outline" class="entity-picker">
+  <mat-label>{{ label() }}</mat-label>
+  <input matInput [formControl]="searchControl" [matAutocomplete]="auto">
+  @if (searching()) {
+    <mat-spinner matSuffix diameter="18"></mat-spinner>
+  } @else if (searchControl.value && !disabled()) {
+    <button matSuffix mat-icon-button type="button" (click)="clear()">
+      <mat-icon>close</mat-icon>
+    </button>
+  }
+  <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="onOptionSelected($event)">
+    @for (option of filteredOptions(); track option.id) {
+      <mat-option [value]="option">{{ option.label }}</mat-option>
+    }
+  </mat-autocomplete>
+</mat-form-field>

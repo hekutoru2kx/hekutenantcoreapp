@@ -1,0 +1,41 @@
+<div class="login-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ 'auth.loginTitle' | transloco }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'auth.usernameOrEmail' | transloco }}</mat-label>
+          <input matInput formControlName="email">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'auth.password' | transloco }}</mat-label>
+          <input matInput type="password" formControlName="password">
+        </mat-form-field>
+
+       
+        @if (errorMessage()) {
+          <p class="error">{{ errorMessage() }}</p>
+        }
+        @if (deactivatedMessage) {
+          <p class="error">{{ deactivatedMessage }}</p>
+        }
+
+        <button mat-flat-button type="submit" [disabled]="form.invalid">
+          {{ 'auth.loginButton' | transloco }}
+        </button>
+      </form>
+
+      <p class="divider">{{ 'auth.orContinueWith' | transloco }}</p>
+      <app-google-sign-in-button (credential)="onGoogleCredential($event)"></app-google-sign-in-button>
+
+      <p class="register-link">
+        {{ 'auth.noAccount' | transloco }}
+        <a routerLink="/register">{{ 'auth.registerLink' | transloco }}</a>
+      </p>
+    </mat-card-content>
+  </mat-card>
+</div>

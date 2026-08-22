@@ -1,0 +1,17 @@
+# .NET build output
+bin/
+obj/
+*.user
+.vs/
+*.suo
+
+# User secrets / local overrides
+appsettings.*.local.json
+.claude/settings.local.json
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Runtime logs
+*.log

@@ -1,0 +1,50 @@
+.database-keep-alive {
+  padding: 24px;
+  max-width: 720px;
+}
+
+.header {
+  margin-bottom: 8px;
+}
+
+.hint {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--mat-sys-on-surface-variant, gray);
+}
+
+.form-card {
+  margin-bottom: 24px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+
+  mat-form-field {
+    flex: 1;
+  }
+}
+
+.last-ping {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: var(--mat-sys-on-surface-variant, gray);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.error {
+  color: var(--mat-sys-error);
+  font-size: 13px;
+}
+
+.success {
+  color: green;
+  font-size: 13px;
+}

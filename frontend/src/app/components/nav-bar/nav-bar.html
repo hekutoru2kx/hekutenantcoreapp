@@ -1,0 +1,169 @@
+<mat-toolbar>
+  <a class="logo" routerLink="/">
+    <mat-icon>apartment</mat-icon>
+    {{ auth.currentUser()?.tenantName || 'HekuTenantCore' }}
+  </a>
+
+  <span class="spacer"></span>
+
+  <nav class="nav-links">
+    <a>{{ 'nav.courses' | transloco }}</a>
+    <a>{{ 'nav.about' | transloco }}</a>
+    <a>{{ 'nav.contact' | transloco }}</a>
+  </nav>
+
+  <span class="spacer"></span>
+
+  <button mat-icon-button (click)="toggleLanguage()" [attr.aria-label]="'nav.switchLanguage' | transloco">
+    {{ currentLang }}
+  </button>
+
+  <button mat-icon-button (click)="theme.toggleMode()" [attr.aria-label]="'nav.switchTheme' | transloco">
+    <mat-icon>{{ theme.mode() === 'light' ? 'dark_mode' : 'light_mode' }}</mat-icon>
+  </button>
+
+  @if (auth.isLoggedIn()) {
+    <!-- Hidden app-wide when MultiTenantSettings.MultiTenantDisabled is on — multitenancy is
+         intentionally hidden in that mode, so no switch/join affordance is shown here. Users
+         keep access to any non-default tenant they already belong to (see AuthService's
+         resolution order); an admin moves them via System > Users if needed. -->
+    @if (!auth.currentUser()?.multiTenantDisabled) {
+      <button mat-icon-button [matMenuTriggerFor]="tenantMenu" (menuOpened)="loadSwitcherTenants()"
+        [attr.aria-label]="'nav.switchTenant' | transloco">
+        <mat-icon>business</mat-icon>
+      </button>
+      <mat-menu #tenantMenu="matMenu">
+        <div class="user-info">
+          <strong>{{ auth.currentUser()?.tenantName || ('nav.noTenant' | transloco) }}</strong>
+        </div>
+        <mat-divider></mat-divider>
+        @for (tenant of switcherTenants(); track tenant.id) {
+          <button mat-menu-item (click)="switchTenant(tenant.id)">
+            <mat-icon>{{ tenant.id === auth.currentUser()?.tenantId ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+            <span>{{ tenant.name }}</span>
+          </button>
+        }
+        <mat-divider></mat-divider>
+        <a mat-menu-item routerLink="/tenant-picker">
+          <mat-icon>add_business</mat-icon>
+          <span>{{ 'nav.joinTenant' | transloco }}</span>
+        </a>
+      </mat-menu>
+    }
+
+    <!-- System scope: bounded contexts that are SuperAdmin-exclusive -->
+    @if (auth.hasClaim('TenantsPermission', 'Read') || auth.hasClaim('RolesPermission', 'Read') || auth.hasClaim('UserManagementPermission', 'Read') || auth.hasClaim('DatabaseKeepAlivePermission', 'Read') || auth.hasClaim('MultiTenantSettingsPermission', 'Read')) {
+      <button mat-icon-button [matMenuTriggerFor]="systemMenu" [attr.aria-label]="'nav.system' | transloco">
+        <mat-icon>shield</mat-icon>
+      </button>
+      <mat-menu #systemMenu="matMenu">
+        <div class="user-info">
+          <strong>{{ 'nav.system' | transloco }}</strong>
+        </div>
+        <mat-divider></mat-divider>
+        @if (auth.hasClaim('TenantsPermission', 'Read') || auth.hasClaim('DatabaseKeepAlivePermission', 'Read') || auth.hasClaim('MultiTenantSettingsPermission', 'Read')) {
+          <button mat-menu-item [matMenuTriggerFor]="platformMenu">
+            <mat-icon>business</mat-icon>
+            <span>{{ 'nav.platform' | transloco }}</span>
+          </button>
+        }
+        @if (auth.hasClaim('UserManagementPermission', 'Read') || auth.hasClaim('RolesPermission', 'Read')) {
+          <button mat-menu-item [matMenuTriggerFor]="identitySystemMenu">
+            <mat-icon>admin_panel_settings</mat-icon>
+            <span>{{ 'nav.identity' | transloco }}</span>
+          </button>
+        }
+      </mat-menu>
+
+      <mat-menu #platformMenu="matMenu">
+        @if (auth.hasClaim('TenantsPermission', 'Read')) {
+          <a mat-menu-item routerLink="/system/platform/tenants">
+            <mat-icon>business</mat-icon>
+            <span>{{ 'nav.systemTenants' | transloco }}</span>
+          </a>
+        }
+        @if (auth.hasClaim('DatabaseKeepAlivePermission', 'Read')) {
+          <a mat-menu-item routerLink="/system/platform/database-keep-alive">
+            <mat-icon>bolt</mat-icon>
+            <span>{{ 'nav.systemDatabaseKeepAlive' | transloco }}</span>
+          </a>
+        }
+        @if (auth.hasClaim('MultiTenantSettingsPermission', 'Read')) {
+          <a mat-menu-item routerLink="/system/platform/multi-tenant-settings">
+            <mat-icon>domain_disabled</mat-icon>
+            <span>{{ 'nav.systemMultiTenantSettings' | transloco }}</span>
+          </a>
+        }
+      </mat-menu>
+
+      <mat-menu #identitySystemMenu="matMenu">
+        @if (auth.hasClaim('UserManagementPermission', 'Read')) {
+          <a mat-menu-item routerLink="/system/identity/users">
+            <mat-icon>manage_accounts</mat-icon>
+            <span>{{ 'nav.systemUsers' | transloco }}</span>
+          </a>
+        }
+        @if (auth.hasClaim('RolesPermission', 'Read')) {
+          <a mat-menu-item routerLink="/system/identity/roles">
+            <mat-icon>admin_panel_settings</mat-icon>
+            <span>{{ 'nav.systemRoles' | transloco }}</span>
+          </a>
+        }
+      </mat-menu>
+    }
+
+		<button mat-icon-button [matMenuTriggerFor]="userMenu">
+			<mat-icon>account_circle</mat-icon>
+		</button>
+		<mat-menu #userMenu="matMenu">
+			<div class="user-info">
+				<strong>{{ auth.currentUser()?.userName }}</strong>
+				<span>{{ auth.currentUser()?.email }}</span>
+			</div>
+			<mat-divider></mat-divider>
+      <a mat-menu-item routerLink="/dashboard">
+          <mat-icon>apps</mat-icon>
+          <span>{{ 'nav.dashboard' | transloco }}</span>
+        </a>
+      <a mat-menu-item routerLink="/profile">
+        <mat-icon>person</mat-icon>
+        <span>{{ 'nav.profile' | transloco }}</span>
+      </a>
+
+      <!-- Tenant scope: bounded contexts a tenant Admin/staff can reach -->
+      @if (auth.hasClaim('EmployeesPermission', 'Read') || auth.hasClaim('PersonsPermission', 'Read')) {
+        <button mat-menu-item [matMenuTriggerFor]="identityOrganizationMenu">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <span>{{ 'nav.identityOrganization' | transloco }}</span>
+        </button>
+      }
+
+			<button mat-menu-item (click)="logout()">
+				<mat-icon>logout</mat-icon>
+				<span>{{ 'nav.logout' | transloco }}</span>
+			</button>
+		</mat-menu>
+
+    <mat-menu #identityOrganizationMenu="matMenu">
+      <a mat-menu-item routerLink="/admin/identity/roles">
+        <mat-icon>admin_panel_settings</mat-icon>
+        <span>{{ 'nav.adminRoles' | transloco }}</span>
+      </a>
+      @if (auth.hasClaim('EmployeesPermission', 'Read')) {
+        <a mat-menu-item routerLink="/admin/organization/employees">
+          <mat-icon>badge</mat-icon>
+          <span>{{ 'nav.adminEmployees' | transloco }}</span>
+        </a>
+      }
+      @if (auth.hasClaim('PersonsPermission', 'Read')) {
+        <a mat-menu-item routerLink="/admin/organization/persons">
+          <mat-icon>people</mat-icon>
+          <span>{{ 'nav.persons' | transloco }}</span>
+        </a>
+      }
+    </mat-menu>
+  } @else {
+    <a mat-button routerLink="/login">{{ 'nav.login' | transloco }}</a>
+    <a mat-flat-button routerLink="/register">{{ 'nav.register' | transloco }}</a>
+  }
+</mat-toolbar>

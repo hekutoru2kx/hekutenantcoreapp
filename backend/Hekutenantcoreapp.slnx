@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Hekutenantcoreapp.Api/Hekutenantcoreapp.Api.csproj" />
+  <Project Path="Hekutenantcoreapp.Application/Hekutenantcoreapp.Application.csproj" />
+  <Project Path="Hekutenantcoreapp.Domain/Hekutenantcoreapp.Domain.csproj" />
+  <Project Path="Hekutenantcoreapp.Infrastructure/Hekutenantcoreapp.Infrastructure.csproj" />
+  <Project Path="Hekutenantcoreapp.Tests/Hekutenantcoreapp.Tests.csproj" />
+</Solution>

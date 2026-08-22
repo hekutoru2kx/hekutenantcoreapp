@@ -1,0 +1,6 @@
+@for (lang of otherLanguages; track lang) {
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>{{ label() }} ({{ lang.toUpperCase() }})</mat-label>
+    <input matInput [value]="translations()[lang] || ''" (input)="onValueChange(lang, $any($event.target).value)">
+  </mat-form-field>
+}

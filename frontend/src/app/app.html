@@ -1,0 +1,13 @@
+<app-nav-bar></app-nav-bar>
+
+@if (auth.currentUser()?.mustChangePassword) {
+  <div class="password-warning">
+    <mat-icon>warning</mat-icon>
+    <span>{{ 'auth.mustChangePassword' | transloco }}</span>
+    <a mat-stroked-button routerLink="/change-password">
+      {{ 'auth.changePasswordNow' | transloco }}
+    </a>
+  </div>
+}
+
+<router-outlet />

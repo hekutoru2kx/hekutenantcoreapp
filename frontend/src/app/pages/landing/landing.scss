@@ -1,0 +1,48 @@
+.hero {
+  text-align: center;
+  padding: 56px 24px;
+
+  h1 {
+    margin: 0 0 12px;
+  }
+
+  p {
+    margin: 0 0 24px;
+    opacity: 0.7;
+  }
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 0 24px 48px;
+
+  mat-card {
+    text-align: center;
+    padding: 16px;
+
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+
+    h3 {
+      margin: 8px 0 4px;
+      font-size: 15px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      opacity: 0.7;
+    }
+  }
+}

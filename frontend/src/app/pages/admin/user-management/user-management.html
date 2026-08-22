@@ -1,0 +1,187 @@
+<div class="user-management">
+  <div class="header">
+    <h2>{{ 'admin.users.title' | transloco }}</h2>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="showColumnMenu.set(!showColumnMenu())">
+        <mat-icon>view_column</mat-icon>
+        {{ 'common.columns' | transloco }}
+      </button>
+      <button mat-stroked-button (click)="exportUsers()">
+        <mat-icon>download</mat-icon>
+        {{ 'common.export' | transloco }}
+      </button>
+      <button mat-flat-button (click)="toggleCreateForm()">
+        <mat-icon>{{ showCreateForm() ? 'close' : 'person_add' }}</mat-icon>
+        {{ showCreateForm() ? ('admin.users.cancel' | transloco) : ('admin.users.createUser' | transloco) }}
+      </button>
+    </div>
+  </div>
+
+  @if (showColumnMenu()) {
+    <mat-card class="column-menu-card">
+      <p class="hint">{{ 'common.reorderColumnsHint' | transloco }}</p>
+      <app-column-reorder [columns]="reorderableColumns()" (orderChange)="onColumnsReordered($event)" (visibilityToggle)="onColumnVisibilityToggled($event)" />
+    </mat-card>
+  }
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  @if (createdUserPassword()) {
+    <div class="password-alert">
+      <mat-icon>key</mat-icon>
+      <span>{{ 'admin.users.tempPassword' | transloco }}: <strong>{{ createdUserPassword() }}</strong></span>
+      <button mat-icon-button (click)="createdUserPassword.set(null)">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  }
+
+  @if (showCreateForm()) {
+    <mat-card class="create-form">
+      <mat-card-header>
+        <mat-card-title>{{ 'admin.users.createUser' | transloco }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="createForm" (ngSubmit)="createUser()">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'auth.userName' | transloco }}</mat-label>
+            <input matInput formControlName="userName">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'auth.email' | transloco }}</mat-label>
+            <input matInput type="email" formControlName="email">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'admin.users.passwordOptional' | transloco }}</mat-label>
+            <input matInput type="password" formControlName="password">
+          </mat-form-field>
+
+          <mat-checkbox formControlName="makeSuperAdmin">{{ 'admin.users.makeSuperAdmin' | transloco }}</mat-checkbox>
+
+          <button mat-flat-button type="submit" [disabled]="createForm.invalid">
+            {{ 'admin.users.createUser' | transloco }}
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>{{ 'admin.users.search' | transloco }}</mat-label>
+      <input matInput [formControl]="searchControl">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'admin.users.filterByStatus' | transloco }}</mat-label>
+      <mat-select [formControl]="statusFilterControl">
+        <mat-option [value]="null">{{ 'admin.users.allStatuses' | transloco }}</mat-option>
+        <mat-option [value]="true">{{ 'admin.users.activeOnly' | transloco }}</mat-option>
+        <mat-option [value]="false">{{ 'admin.users.inactiveOnly' | transloco }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <table mat-table [dataSource]="users()" matSort (matSortChange)="onSortChange($event)">
+    <ng-container matColumnDef="userName">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'admin.users.name' | transloco }}</th>
+      <td mat-cell *matCellDef="let user">{{ user.userName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'admin.users.email' | transloco }}</th>
+      <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="superAdmin">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.users.superAdmin' | transloco }}</th>
+      <td mat-cell *matCellDef="let user">
+        @if (user.roles.includes('SuperAdmin')) {
+          <mat-chip>SuperAdmin</mat-chip>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.users.status' | transloco }}</th>
+      <td mat-cell *matCellDef="let user">
+        <mat-icon [class]="user.isActive ? 'active' : 'inactive'">
+          {{ user.isActive ? 'check_circle' : 'cancel' }}
+        </mat-icon>
+        @if (user.mustChangePassword) {
+          <mat-icon matTooltip="{{ 'admin.users.mustChangePassword' | transloco }}" class="warning">
+            warning
+          </mat-icon>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="createdAt">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'admin.users.createdAt' | transloco }}</th>
+      <td mat-cell *matCellDef="let user">{{ user.createdAt | date:'yyyy-MM-dd hh:mm a' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.users.actions' | transloco }}</th>
+      <td mat-cell *matCellDef="let user">
+        <button mat-icon-button
+          [matTooltip]="(user.roles.includes('SuperAdmin') ? 'admin.users.revokeSuperAdmin' : 'admin.users.grantSuperAdmin') | transloco"
+          (click)="toggleSuperAdmin(user)">
+          <mat-icon>{{ user.roles.includes('SuperAdmin') ? 'shield' : 'add_moderator' }}</mat-icon>
+        </button>
+
+        <button mat-icon-button [matTooltip]="(user.isActive ? 'admin.users.deactivate' : 'admin.users.activate') | transloco"
+          (click)="toggleActive(user)">
+          <mat-icon>{{ user.isActive ? 'block' : 'check_circle' }}</mat-icon>
+        </button>
+
+        <button mat-icon-button [matTooltip]="'admin.users.resetPassword' | transloco"
+          (click)="resetPassword(user.id)">
+          <mat-icon>lock_reset</mat-icon>
+        </button>
+
+        <button mat-icon-button [matTooltip]="'admin.users.setDefaultTenant' | transloco"
+          [matMenuTriggerFor]="defaultTenantMenu" (menuOpened)="openDefaultTenantMenu(user)">
+          <mat-icon>home</mat-icon>
+        </button>
+
+        <button mat-icon-button [matTooltip]="'admin.users.delete' | transloco"
+          (click)="deleteUser(user.id)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns();"></tr>
+  </table>
+
+  <mat-menu #defaultTenantMenu="matMenu">
+    <div class="user-info">
+      <strong>{{ 'admin.users.setDefaultTenant' | transloco }}</strong>
+    </div>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="setDefaultTenant(null)">
+      <mat-icon>{{ defaultTenantMenuUser()?.defaultTenantId == null ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+      <span>{{ 'admin.users.noDefaultTenant' | transloco }}</span>
+    </button>
+    @for (tenant of defaultTenantMenuTenants(); track tenant.id) {
+      <button mat-menu-item (click)="setDefaultTenant(tenant.id)">
+        <mat-icon>{{ tenant.id === defaultTenantMenuUser()?.defaultTenantId ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+        <span>{{ tenant.name }}</span>
+      </button>
+    }
+  </mat-menu>
+
+  <mat-paginator
+    [length]="totalCount()"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="pageSizeOptions"
+    (page)="onPageChange($event)">
+  </mat-paginator>
+</div>

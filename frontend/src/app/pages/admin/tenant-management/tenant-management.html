@@ -1,0 +1,111 @@
+<div class="tenant-management">
+  <div class="header">
+    <h2>{{ 'admin.tenants.title' | transloco }}</h2>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="showColumnMenu.set(!showColumnMenu())">
+        <mat-icon>view_column</mat-icon>
+        {{ 'common.columns' | transloco }}
+      </button>
+      <button mat-stroked-button (click)="exportTenants()">
+        <mat-icon>download</mat-icon>
+        {{ 'common.export' | transloco }}
+      </button>
+      @if (canCreateTenant()) {
+        <button mat-flat-button (click)="toggleForm()">
+          <mat-icon>{{ showForm() && !editingTenant() ? 'close' : 'add_business' }}</mat-icon>
+          {{ showForm() && !editingTenant() ? ('persons.cancel' | transloco) : ('admin.tenants.create' | transloco) }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (showColumnMenu()) {
+    <mat-card class="column-menu-card">
+      <p class="hint">{{ 'common.reorderColumnsHint' | transloco }}</p>
+      <app-column-reorder [columns]="reorderableColumns()" (orderChange)="onColumnsReordered($event)" (visibilityToggle)="onColumnVisibilityToggled($event)" />
+    </mat-card>
+  }
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  @if (showForm()) {
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>
+          {{ editingTenant() ? ('admin.tenants.edit' | transloco) : ('admin.tenants.create' | transloco) }}
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <app-tenant-form
+          [tenantData]="editingTenantFormData()"
+          (saved)="onTenantSaved($event)"
+          (cancelled)="onTenantCancelled()">
+        </app-tenant-form>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>{{ 'admin.users.search' | transloco }}</mat-label>
+    <input matInput [formControl]="searchControl">
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+
+  <table mat-table [dataSource]="tenants()" matSort (matSortChange)="onSortChange($event)">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="name">{{ 'tenants.name' | transloco }}</th>
+      <td mat-cell *matCellDef="let tenant">{{ tenant.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="tenantType">
+      <th mat-header-cell *matHeaderCellDef>{{ 'tenants.tenantType' | transloco }}</th>
+      <td mat-cell *matCellDef="let tenant">{{ 'tenants.type_' + tenant.tenantType | transloco }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="location">
+      <th mat-header-cell *matHeaderCellDef>{{ 'profile.location' | transloco }}</th>
+      <td mat-cell *matCellDef="let tenant">{{ tenant.countryName }}, {{ tenant.stateName }}, {{ tenant.cityName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef>{{ 'tenants.email' | transloco }}</th>
+      <td mat-cell *matCellDef="let tenant">{{ tenant.email }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="isActive">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.users.status' | transloco }}</th>
+      <td mat-cell *matCellDef="let tenant">
+        <mat-icon [class]="tenant.isActive ? 'active' : 'inactive'">
+          {{ tenant.isActive ? 'check_circle' : 'cancel' }}
+        </mat-icon>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.users.actions' | transloco }}</th>
+      <td mat-cell *matCellDef="let tenant">
+        @if (canUpdateTenant()) {
+          <button mat-icon-button [matTooltip]="'persons.edit' | transloco" (click)="toggleForm(tenant)">
+            <mat-icon>edit</mat-icon>
+          </button>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns();"></tr>
+  </table>
+
+  <mat-paginator
+    [length]="totalCount()"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="pageSizeOptions"
+    (page)="onPageChange($event)">
+  </mat-paginator>
+</div>

@@ -1,0 +1,20 @@
+<h2 mat-dialog-title>{{ 'admin.employees.addRole' | transloco }}</h2>
+
+<mat-dialog-content>
+  @if (data.availableRoles.length === 0) {
+    <p class="hint">{{ 'admin.employees.noRolesLeftToAdd' | transloco }}</p>
+  } @else {
+    <mat-selection-list #list (selectionChange)="onSelectionChange(list.selectedOptions.selected)">
+      @for (role of data.availableRoles; track role) {
+        <mat-list-option [value]="role">{{ role }}</mat-list-option>
+      }
+    </mat-selection-list>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="cancel()">{{ 'persons.cancel' | transloco }}</button>
+  <button mat-flat-button [disabled]="selected().length === 0" (click)="add()">
+    {{ 'admin.employees.addRole' | transloco }}
+  </button>
+</mat-dialog-actions>

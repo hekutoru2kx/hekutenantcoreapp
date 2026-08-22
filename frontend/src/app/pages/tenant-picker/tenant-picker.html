@@ -1,0 +1,62 @@
+<div class="tenant-picker-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ 'tenantPicker.title' | transloco }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (loading()) {
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      }
+
+      @if (errorMessage()) {
+        <p class="error">{{ errorMessage() }}</p>
+      }
+
+      @if (!loading() && myTenants().length > 0) {
+        <p>{{ 'tenantPicker.chooseTenant' | transloco }}</p>
+        <mat-nav-list>
+          @for (tenant of myTenants(); track tenant.id) {
+            <a mat-list-item (click)="select(tenant.id)">{{ tenant.name }}</a>
+          }
+        </mat-nav-list>
+
+        @if (!showJoin()) {
+          <button mat-stroked-button (click)="toggleJoin()">
+            {{ 'tenantPicker.joinAnother' | transloco }}
+          </button>
+        }
+      }
+
+      @if (!loading() && myTenants().length === 0) {
+        <p>{{ 'tenantPicker.noTenantsYet' | transloco }}</p>
+      }
+
+      @if (showJoin()) {
+        <p>{{ 'tenantPicker.selectToJoin' | transloco }}</p>
+
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>{{ 'tenantPicker.searchLabel' | transloco }}</mat-label>
+          <input matInput [formControl]="searchControl" [placeholder]="'tenantPicker.searchPlaceholder' | transloco">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        @if (searching()) {
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        }
+
+        @if ((searchControl.value || '').trim().length < minSearchLength) {
+          <p class="hint">{{ 'tenantPicker.searchHint' | transloco }}</p>
+        } @else if (!searching() && joinableTenants().length === 0) {
+          <p class="hint">{{ 'tenantPicker.noMatches' | transloco }}</p>
+        } @else {
+          <mat-nav-list>
+            @for (tenant of joinableTenants(); track tenant.id) {
+              <a mat-list-item (click)="join(tenant.id)">{{ tenant.name }}</a>
+            }
+          </mat-nav-list>
+        }
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

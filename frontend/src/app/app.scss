@@ -1,0 +1,16 @@
+.password-warning {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+
+  mat-icon {
+    color: var(--mat-sys-error);
+  }
+
+  span {
+    flex: 1;
+  }
+}

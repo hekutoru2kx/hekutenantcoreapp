@@ -1,0 +1,52 @@
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 4px;
+
+  mat-form-field {
+    flex: 1;
+  }
+}
+
+.birthday-pair {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+
+  mat-form-field {
+    flex: 1;
+  }
+
+  .age-field {
+    flex: 0 0 80px;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.error {
+  color: var(--mat-sys-error);
+  font-size: 13px;
+}
+
+.match-hint {
+  font-size: 13px;
+  margin-top: -4px;
+
+  &.linkable {
+    color: var(--mat-sys-tertiary);
+  }
+
+  &.conflict {
+    color: var(--mat-sys-error);
+  }
+}

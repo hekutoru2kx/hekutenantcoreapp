@@ -1,0 +1,28 @@
+.dashboard {
+  padding: 24px;
+}
+
+.welcome {
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0;
+    font-size: 22px;
+  }
+}
+
+.sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.section-card {
+  min-height: 140px;
+}
+
+.empty-state {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+  margin: 0;
+}

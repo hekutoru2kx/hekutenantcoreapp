@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>User not found</value>
+  </data>
+  <data name="InvalidCredentials" xml:space="preserve">
+    <value>Invalid credentials</value>
+  </data>
+  <data name="PasswordTooShort" xml:space="preserve">
+    <value>Password must be at least {0} characters</value>
+  </data>
+  <data name="PasswordRequiresUpper" xml:space="preserve">
+    <value>Password must have at least one uppercase letter</value>
+  </data>
+  <data name="PasswordRequiresLower" xml:space="preserve">
+    <value>Password must have at least one lowercase letter</value>
+  </data>
+  <data name="PasswordRequiresDigit" xml:space="preserve">
+    <value>Password must have at least one digit</value>
+  </data>
+  <data name="PasswordRequiresNonAlphanumeric" xml:space="preserve">
+    <value>Password must have at least one special character</value>
+  </data>
+  <data name="DuplicateEmail" xml:space="preserve">
+    <value>Email is already taken</value>
+  </data>
+  <data name="DuplicateUserName" xml:space="preserve">
+    <value>Username is already taken</value>
+  </data>
+  <data name="InvalidEmail" xml:space="preserve">
+    <value>Email is not valid</value>
+  </data>
+  <data name="PersonAlreadyExistsCannotLink" xml:space="preserve">
+    <value>This person already exists and can't be linked. Contact the administrator.</value>
+  </data>
+  <data name="PersonNotFound" xml:space="preserve">
+    <value>Person not found</value>
+  </data>
+  <data name="PersonAlreadyLinkedToAnotherAccount" xml:space="preserve">
+    <value>This person is already linked to another account</value>
+  </data>
+  <data name="PersonNotLinkedToUser" xml:space="preserve">
+    <value>This person has no linked user account, so there's no tenant access to suspend or reactivate.</value>
+  </data>
+  <data name="JwtKeyNotConfigured" xml:space="preserve">
+    <value>JWT key not configured</value>
+  </data>
+  <data name="RoleNotFound" xml:space="preserve">
+    <value>Role not found</value>
+  </data>
+  <data name="RoleAlreadyExists" xml:space="preserve">
+    <value>A role with this name already exists</value>
+  </data>
+  <data name="CannotDeleteAdminRole" xml:space="preserve">
+    <value>The Admin and SuperAdmin roles can't be deleted.</value>
+  </data>
+  <data name="TenantNotFound" xml:space="preserve">
+    <value>Tenant not found</value>
+  </data>
+  <data name="TenantNotActive" xml:space="preserve">
+    <value>This tenant is not active</value>
+  </data>
+  <data name="AlreadyTenantMember" xml:space="preserve">
+    <value>You already belong to this tenant. Use select-tenant instead.</value>
+  </data>
+  <data name="NotTenantMember" xml:space="preserve">
+    <value>You don't belong to this tenant</value>
+  </data>
+  <data name="TenantAccessSuspended" xml:space="preserve">
+    <value>Your access to this tenant has been suspended. Contact your tenant administrator.</value>
+  </data>
+  <data name="EmployeeNotFound" xml:space="preserve">
+    <value>Employee not found</value>
+  </data>
+  <data name="EmployeeAlreadyExists" xml:space="preserve">
+    <value>This user is already an employee in this tenant</value>
+  </data>
+  <data name="SuperAdminNotTenantAssignable" xml:space="preserve">
+    <value>SuperAdmin can only be granted through the System &gt; Users page, not as a tenant role</value>
+  </data>
+  <data name="CannotRemoveLastSuperAdmin" xml:space="preserve">
+    <value>Cannot remove the last SuperAdmin</value>
+  </data>
+  <data name="OnlyGlobalRoleIsSuperAdmin" xml:space="preserve">
+    <value>SuperAdmin is the only role that can be assigned globally</value>
+  </data>
+  <data name="EmailTenantInviteSubject" xml:space="preserve">
+    <value>You've been invited to {0}</value>
+  </data>
+  <data name="EmailTenantInviteTitle" xml:space="preserve">
+    <value>You've been invited to join {0}</value>
+  </data>
+  <data name="EmailTenantInviteBody" xml:space="preserve">
+    <value>Hi {0}, you've been added to {1} as {2}. Log in to get started.</value>
+  </data>
+  <data name="EmailTenantInviteBodyWithPassword" xml:space="preserve">
+    <value>Hi {0}, you've been added to {1} as {2}. Your temporary password is:</value>
+  </data>
+  <data name="GoogleAuthNotConfigured" xml:space="preserve">
+    <value>Google sign-in is not configured on this server.</value>
+  </data>
+  <data name="InvalidGoogleToken" xml:space="preserve">
+    <value>Invalid Google sign-in token.</value>
+  </data>
+  <data name="GoogleEmailNotVerified" xml:space="preserve">
+    <value>Your Google account's email is not verified.</value>
+  </data>
+  <data name="AccountWasDeleted" xml:space="preserve">
+    <value>This account was deleted and can no longer sign in. Contact an administrator.</value>
+  </data>
+
+  <data name="EmailWelcomeSubject" xml:space="preserve">
+  <value>Welcome to HekuTenantCore</value>
+</data>
+<data name="EmailWelcomeTitle" xml:space="preserve">
+  <value>Welcome to HekuTenantCore, {0}!</value>
+</data>
+<data name="EmailWelcomeBody" xml:space="preserve">
+  <value>Your account has been created successfully. You can now log in and start exploring the platform.</value>
+</data>
+
+<data name="EmailPasswordChangedSubject" xml:space="preserve">
+  <value>Password Changed</value>
+</data>
+<data name="EmailPasswordChangedTitle" xml:space="preserve">
+  <value>Password Changed</value>
+</data>
+<data name="EmailPasswordChangedBody" xml:space="preserve">
+  <value>Hi {0}, your password was just changed. If this wasn't you, please contact an administrator immediately.</value>
+</data>
+
+<data name="EmailPasswordResetSubject" xml:space="preserve">
+  <value>Password Reset</value>
+</data>
+<data name="EmailPasswordResetTitle" xml:space="preserve">
+  <value>Password Reset</value>
+</data>
+<data name="EmailPasswordResetBody" xml:space="preserve">
+  <value>Hi {0}, an administrator has reset your password. Your temporary password is:</value>
+</data>
+<data name="EmailPasswordResetFooter" xml:space="preserve">
+  <value>You will be required to change this password the next time you log in.</value>
+</data>
+<data name="ExportTooLarge" xml:space="preserve">
+  <value>This search matches too many rows to export ({0} max). Narrow your search and try again.</value>
+</data>
+<data name="DatabaseKeepAliveSettingsNotFound" xml:space="preserve">
+  <value>Database keep-alive settings not found</value>
+</data>
+<data name="MultiTenantSettingsNotFound" xml:space="preserve">
+  <value>Multi-tenant settings not found</value>
+</data>
+<data name="DefaultTenantRequiredForFlag" xml:space="preserve">
+  <value>A default tenant must be set before enabling this setting</value>
+</data>
+<data name="DefaultTenantMustBeActive" xml:space="preserve">
+  <value>The default tenant must be an active tenant</value>
+</data>
+<data name="DefaultTenantNotAMembership" xml:space="preserve">
+  <value>The selected tenant is not one of this user's memberships</value>
+</data>
+</root>

@@ -1,0 +1,43 @@
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 48px 24px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+mat-card-content {
+  padding-top: 16px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.error {
+  color: var(--mat-sys-error);
+  font-size: 13px;
+}
+
+.success {
+  color: green;
+  font-size: 13px;
+}
+
+mat-divider {
+  margin: 24px 0;
+}
+
+.password-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}

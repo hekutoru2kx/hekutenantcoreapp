@@ -1,0 +1,158 @@
+<div class="employee-management">
+  <div class="header">
+    <h2>{{ 'admin.employees.title' | transloco }}</h2>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="showColumnMenu.set(!showColumnMenu())">
+        <mat-icon>view_column</mat-icon>
+        {{ 'common.columns' | transloco }}
+      </button>
+      <button mat-stroked-button (click)="exportEmployees()">
+        <mat-icon>download</mat-icon>
+        {{ 'common.export' | transloco }}
+      </button>
+      @if (canCreateEmployee()) {
+        <button mat-flat-button (click)="toggleInviteForm()">
+          <mat-icon>{{ showInviteForm() ? 'close' : 'person_add' }}</mat-icon>
+          {{ showInviteForm() ? ('persons.cancel' | transloco) : ('admin.employees.invite' | transloco) }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (showColumnMenu()) {
+    <mat-card class="column-menu-card">
+      <p class="hint">{{ 'common.reorderColumnsHint' | transloco }}</p>
+      <app-column-reorder [columns]="reorderableColumns()" (orderChange)="onColumnsReordered($event)" (visibilityToggle)="onColumnVisibilityToggled($event)" />
+    </mat-card>
+  }
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  @if (showInviteForm()) {
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>{{ 'admin.employees.invite' | transloco }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="inviteForm" (ngSubmit)="invite()">
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'admin.users.email' | transloco }}</mat-label>
+              <input matInput type="email" formControlName="email">
+              @if (inviteForm.controls.email.hasError('required')) {
+                <mat-error>{{ 'admin.employees.emailRequired' | transloco }}</mat-error>
+              } @else if (inviteForm.controls.email.hasError('email')) {
+                <mat-error>{{ 'admin.employees.emailInvalid' | transloco }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'admin.employees.role' | transloco }}</mat-label>
+              <mat-select formControlName="roleName">
+                @for (role of availableRoles(); track role) {
+                  <mat-option [value]="role">{{ role }}</mat-option>
+                }
+              </mat-select>
+              @if (inviteForm.controls.roleName.hasError('required')) {
+                <mat-error>{{ 'admin.employees.roleRequired' | transloco }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'admin.employees.expiresAt' | transloco }}</mat-label>
+              <input matInput [matDatepicker]="rolePicker" formControlName="roleExpiresAt">
+              <mat-datepicker-toggle matSuffix [for]="rolePicker"></mat-datepicker-toggle>
+              <mat-datepicker #rolePicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'admin.employees.jobTitle' | transloco }}</mat-label>
+              <input matInput formControlName="jobTitle">
+            </mat-form-field>
+          </div>
+
+          <button mat-flat-button type="submit" [disabled]="inviteForm.invalid">
+            {{ 'admin.employees.invite' | transloco }}
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>{{ 'admin.users.search' | transloco }}</mat-label>
+    <input matInput [formControl]="searchControl">
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+
+  <table mat-table [dataSource]="employees()" matSort (matSortChange)="onSortChange($event)">
+    <ng-container matColumnDef="userName">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.users.name' | transloco }}</th>
+      <td mat-cell *matCellDef="let employee">{{ employee.userName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.users.email' | transloco }}</th>
+      <td mat-cell *matCellDef="let employee">{{ employee.email }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="jobTitle">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="jobTitle">{{ 'admin.employees.jobTitle' | transloco }}</th>
+      <td mat-cell *matCellDef="let employee">{{ employee.jobTitle }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="roles">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.users.roles' | transloco }}</th>
+      <td mat-cell *matCellDef="let employee">
+        <mat-chip-set>
+          @for (role of employee.roles; track role) {
+            <mat-chip>{{ role }}</mat-chip>
+          }
+        </mat-chip-set>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="isActive">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.users.status' | transloco }}</th>
+      <td mat-cell *matCellDef="let employee">
+        <mat-icon [class]="employee.isActive ? 'active' : 'inactive'">
+          {{ employee.isActive ? 'check_circle' : 'cancel' }}
+        </mat-icon>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.users.actions' | transloco }}</th>
+      <td mat-cell *matCellDef="let employee">
+        @if (canUpdateEmployee()) {
+          <a mat-icon-button [matTooltip]="'admin.employees.manageRoles' | transloco"
+            [routerLink]="['/admin/identity/employees', employee.id, 'roles']">
+            <mat-icon>manage_accounts</mat-icon>
+          </a>
+          <button mat-icon-button [matTooltip]="(employee.isActive ? 'admin.users.deactivate' : 'admin.users.activate') | transloco"
+            (click)="toggleActive(employee)">
+            <mat-icon>{{ employee.isActive ? 'block' : 'check_circle' }}</mat-icon>
+          </button>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns();"></tr>
+  </table>
+
+  <mat-paginator
+    [length]="totalCount()"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="pageSizeOptions"
+    (page)="onPageChange($event)">
+  </mat-paginator>
+</div>

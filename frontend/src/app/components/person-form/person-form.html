@@ -1,0 +1,152 @@
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+}
+
+@if (errorMessage()) {
+  <p class="error">{{ errorMessage() }}</p>
+}
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'persons.firstName' | transloco }}</mat-label>
+      <input matInput formControlName="firstName">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'persons.lastName' | transloco }}</mat-label>
+      <input matInput formControlName="lastName">
+    </mat-form-field>
+  </div>
+
+  <div class="form-row">
+    <div class="birthday-pair">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'persons.birthday' | transloco }}</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="birthday">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="age-field">
+        <mat-label>{{ 'persons.age' | transloco }}</mat-label>
+        <input matInput [value]="ageDisplay()" readonly disabled>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'persons.gender' | transloco }}</mat-label>
+      <mat-select formControlName="gender">
+        <mat-option [value]="''">-</mat-option>
+        @for (g of genders; track g) {
+          <mat-option [value]="g">{{ 'persons.gender_' + g | transloco }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'persons.documentType' | transloco }}</mat-label>
+      <mat-select formControlName="documentType">
+        <mat-option [value]="''">-</mat-option>
+        @for (dt of documentTypes; track dt) {
+          <mat-option [value]="dt">{{ 'persons.docType_' + dt | transloco }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'persons.documentId' | transloco }}</mat-label>
+      <input matInput formControlName="documentId">
+    </mat-form-field>
+  </div>
+
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'persons.phone' | transloco }}</mat-label>
+      <input matInput formControlName="phone">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'persons.phoneExtension' | transloco }}</mat-label>
+      <input matInput formControlName="phoneExtension">
+    </mat-form-field>
+  </div>
+
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'persons.alternativePhone' | transloco }}</mat-label>
+      <input matInput formControlName="alternativePhone">
+    </mat-form-field>
+  </div>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>{{ 'persons.email' | transloco }}</mat-label>
+    <input matInput type="email" formControlName="email">
+  </mat-form-field>
+
+  @if (existingMatch(); as match) {
+    @if (match.linkable) {
+      <p class="match-hint linkable">{{ 'persons.existingMatchLinkable' | transloco }}</p>
+    } @else {
+      <p class="match-hint conflict">{{ 'persons.existingMatchConflict' | transloco }}</p>
+    }
+  }
+
+  <mat-divider></mat-divider>
+  <h3>{{ 'profile.location' | transloco }}</h3>
+
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'profile.country' | transloco }}</mat-label>
+      <mat-select formControlName="countryId" (selectionChange)="onCountryChange($event.value)">
+        <mat-option [value]="null">-</mat-option>
+        @for (country of countries(); track country.id) {
+          <mat-option [value]="country.id">{{ country.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'profile.state' | transloco }}</mat-label>
+      <mat-select formControlName="stateId" (selectionChange)="onStateChange($event.value)" [disabled]="states().length === 0">
+        <mat-option [value]="null">-</mat-option>
+        @for (state of states(); track state.id) {
+          <mat-option [value]="state.id">{{ state.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'profile.city' | transloco }}</mat-label>
+      <mat-select formControlName="cityId" [disabled]="cities().length === 0">
+        <mat-option [value]="null">-</mat-option>
+        @for (city of cities(); track city.id) {
+          <mat-option [value]="city.id">{{ city.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>{{ 'persons.address' | transloco }}</mat-label>
+    <input matInput formControlName="address">
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>{{ 'persons.postalCode' | transloco }}</mat-label>
+    <input matInput formControlName="postalCode">
+  </mat-form-field>
+
+  @if (showSaveButton()) {
+    <div class="form-actions">
+      <button mat-stroked-button type="button" (click)="onCancel()">
+        {{ 'persons.cancel' | transloco }}
+      </button>
+      <button mat-flat-button type="submit" [disabled]="form.invalid || readOnly()">
+        {{ 'persons.save' | transloco }}
+      </button>
+    </div>
+  }
+</form>

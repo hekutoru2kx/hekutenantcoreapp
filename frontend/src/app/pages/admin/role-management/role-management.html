@@ -1,0 +1,114 @@
+<div class="role-management">
+  <div class="header">
+    <h2>{{ 'admin.roles.title' | transloco }}</h2>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="showColumnMenu.set(!showColumnMenu())">
+        <mat-icon>view_column</mat-icon>
+        {{ 'common.columns' | transloco }}
+      </button>
+      <button mat-stroked-button (click)="exportRoles()">
+        <mat-icon>download</mat-icon>
+        {{ 'common.export' | transloco }}
+      </button>
+      <button mat-stroked-button (click)="restoreDefaults()">
+        <mat-icon>restore</mat-icon>
+        {{ 'admin.roles.restoreDefaults' | transloco }}
+      </button>
+      <button mat-flat-button (click)="toggleCreateForm()">
+        <mat-icon>{{ showCreateForm() ? 'close' : 'add' }}</mat-icon>
+        {{ showCreateForm() ? ('admin.roles.cancel' | transloco) : ('admin.roles.createRole' | transloco) }}
+      </button>
+    </div>
+  </div>
+
+  @if (showColumnMenu()) {
+    <mat-card class="column-menu-card">
+      <p class="hint">{{ 'common.reorderColumnsHint' | transloco }}</p>
+      <app-column-reorder [columns]="reorderableColumns()" (orderChange)="onColumnsReordered($event)" (visibilityToggle)="onColumnVisibilityToggled($event)" />
+    </mat-card>
+  }
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  @if (showCreateForm()) {
+    <mat-card class="create-form">
+      <mat-card-content>
+        <form [formGroup]="createForm" (ngSubmit)="createRole()">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'admin.roles.roleName' | transloco }}</mat-label>
+            <input matInput formControlName="name">
+          </mat-form-field>
+
+          <button mat-flat-button type="submit" [disabled]="createForm.invalid">
+            {{ 'admin.roles.createRole' | transloco }}
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (catalog().length === 0) {
+    <p class="hint">{{ 'admin.roles.noPermissionsRegistered' | transloco }}</p>
+  }
+
+  <table mat-table [dataSource]="roles()">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.roles.roleName' | transloco }}</th>
+      <td mat-cell *matCellDef="let role">{{ role.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="claims">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.roles.claims' | transloco }}</th>
+      <td mat-cell *matCellDef="let role">
+        <mat-chip-set>
+          @for (claim of role.claims; track claim.module + claim.action) {
+            <mat-chip>{{ claim.module }}.{{ claim.action }}</mat-chip>
+          }
+        </mat-chip-set>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.roles.actions' | transloco }}</th>
+      <td mat-cell *matCellDef="let role">
+        <button mat-icon-button [matTooltip]="'admin.roles.editClaims' | transloco" (click)="openEditClaims(role)">
+          <mat-icon>tune</mat-icon>
+        </button>
+        <button mat-icon-button [matTooltip]="'admin.roles.delete' | transloco" (click)="deleteRole(role.name)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns();"></tr>
+  </table>
+
+  @if (editingRole()) {
+    <mat-card class="claims-editor">
+      <mat-card-header>
+        <mat-card-title>{{ 'admin.roles.editClaims' | transloco }}: {{ editingRole() }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @for (mod of catalog(); track mod.module) {
+          <div class="module-group">
+            <h4>{{ mod.module }}</h4>
+            @for (action of mod.actions; track action) {
+              <mat-checkbox
+                [checked]="isClaimChecked(mod.module, action)"
+                (change)="toggleClaim(mod.module, action)">
+                {{ action }}
+              </mat-checkbox>
+            }
+          </div>
+        }
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-stroked-button (click)="closeEditClaims()">{{ 'admin.roles.cancel' | transloco }}</button>
+        <button mat-flat-button (click)="saveClaims()">{{ 'admin.roles.save' | transloco }}</button>
+      </mat-card-actions>
+    </mat-card>
+  }
+</div>

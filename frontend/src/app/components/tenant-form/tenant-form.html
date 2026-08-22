@@ -1,0 +1,91 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'tenants.name' | transloco }}</mat-label>
+      <input matInput formControlName="name">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'tenants.tenantType' | transloco }}</mat-label>
+      <mat-select formControlName="tenantType">
+        @for (t of tenantTypes; track t) {
+          <mat-option [value]="t">{{ 'tenants.type_' + t | transloco }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'tenants.phone' | transloco }}</mat-label>
+      <input matInput formControlName="phone">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'tenants.email' | transloco }}</mat-label>
+      <input matInput type="email" formControlName="email">
+    </mat-form-field>
+  </div>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>{{ 'tenants.urlSite' | transloco }}</mat-label>
+    <input matInput formControlName="urlSite">
+  </mat-form-field>
+
+  <mat-divider></mat-divider>
+  <h3>{{ 'profile.location' | transloco }}</h3>
+
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'profile.country' | transloco }}</mat-label>
+      <mat-select formControlName="countryId" (selectionChange)="onCountryChange($event.value)">
+        <mat-option [value]="null">-</mat-option>
+        @for (country of countries(); track country.id) {
+          <mat-option [value]="country.id">{{ country.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'profile.state' | transloco }}</mat-label>
+      <mat-select formControlName="stateId" (selectionChange)="onStateChange($event.value)" [disabled]="states().length === 0">
+        <mat-option [value]="null">-</mat-option>
+        @for (state of states(); track state.id) {
+          <mat-option [value]="state.id">{{ state.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'profile.city' | transloco }}</mat-label>
+      <mat-select formControlName="cityId" [disabled]="cities().length === 0">
+        <mat-option [value]="null">-</mat-option>
+        @for (city of cities(); track city.id) {
+          <mat-option [value]="city.id">{{ city.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'tenants.attachmentRetentionDays' | transloco }}</mat-label>
+      <input matInput type="number" formControlName="attachmentRetentionDays">
+    </mat-form-field>
+
+    <mat-checkbox formControlName="isActive">{{ 'tenants.isActive' | transloco }}</mat-checkbox>
+  </div>
+
+  @if (showSaveButton()) {
+    <div class="form-actions">
+      <button mat-stroked-button type="button" (click)="onCancel()">
+        {{ 'persons.cancel' | transloco }}
+      </button>
+      <button mat-flat-button type="submit" [disabled]="form.invalid">
+        {{ 'persons.save' | transloco }}
+      </button>
+    </div>
+  }
+</form>
