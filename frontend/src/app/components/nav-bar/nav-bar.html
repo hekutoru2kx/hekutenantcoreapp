@@ -62,13 +62,13 @@
         </div>
         <mat-divider></mat-divider>
         @if (auth.hasClaim('TenantsPermission', 'Read') || auth.hasClaim('MultiTenantSettingsPermission', 'Read')) {
-          <button mat-menu-item [matMenuTriggerFor]="platformMenu">
+          <button mat-menu-item [matMenuTriggerFor]="platformMenu" appSubmenuAlign>
             <mat-icon>business</mat-icon>
             <span>{{ 'nav.platform' | transloco }}</span>
           </button>
         }
         @if (auth.hasClaim('UserManagementPermission', 'Read') || auth.hasClaim('RolesPermission', 'Read')) {
-          <button mat-menu-item [matMenuTriggerFor]="identitySystemMenu">
+          <button mat-menu-item [matMenuTriggerFor]="identitySystemMenu" appSubmenuAlign>
             <mat-icon>admin_panel_settings</mat-icon>
             <span>{{ 'nav.identity' | transloco }}</span>
           </button>
@@ -126,7 +126,7 @@
 
       <!-- Tenant scope: bounded contexts a tenant Admin/staff can reach -->
       @if (auth.hasClaim('EmployeesPermission', 'Read') || auth.hasClaim('PersonsPermission', 'Read')) {
-        <button mat-menu-item [matMenuTriggerFor]="identityOrganizationMenu">
+        <button mat-menu-item [matMenuTriggerFor]="identityOrganizationMenu" appSubmenuAlign>
           <mat-icon>admin_panel_settings</mat-icon>
           <span>{{ 'nav.identityOrganization' | transloco }}</span>
         </button>

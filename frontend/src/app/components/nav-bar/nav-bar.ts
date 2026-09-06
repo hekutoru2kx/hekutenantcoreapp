@@ -8,10 +8,20 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { Theme } from '../../services/theme';
 import { Auth, TenantSummary } from '../../services/auth';
 import { MatDividerModule } from '@angular/material/divider';
+import { SubmenuAlignDirective } from '../../shared/submenu-align.directive';
 
 @Component({
   selector: 'app-nav-bar',
-  imports: [MatToolbarModule, MatButtonModule, MatIconModule, MatMenuModule, MatDividerModule, TranslocoModule, RouterLink],
+  imports: [
+    MatToolbarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    MatDividerModule,
+    TranslocoModule,
+    RouterLink,
+    SubmenuAlignDirective,
+  ],
   templateUrl: './nav-bar.html',
   styleUrl: './nav-bar.scss',
 })
