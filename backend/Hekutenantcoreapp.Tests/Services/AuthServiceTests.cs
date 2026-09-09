@@ -18,6 +18,7 @@ public class AuthServiceTests
     private readonly Mock<ITenantMembershipRepository> _tenantMembershipRepository = new();
     private readonly Mock<IUserTenantRoleRepository> _userTenantRoleRepository = new();
     private readonly Mock<IMultiTenantSettingsRepository> _multiTenantSettingsRepository = new();
+    private readonly Mock<IAppSettingsRepository> _appSettingsRepository = new();
     private readonly Mock<IStringLocalizer<Hekutenantcoreapp.Application.Resources.Messages>> _localizer = new();
     private readonly EmailTemplates _emailTemplates;
 
@@ -34,6 +35,10 @@ public class AuthServiceTests
         // unless a test explicitly overrides this setup.
         _multiTenantSettingsRepository.Setup(r => r.GetSettingsAsync())
             .ReturnsAsync(new MultiTenantSettingsResult());
+
+        // Baseline: email confirmation not required — today's pre-feature behavior.
+        _appSettingsRepository.Setup(r => r.GetSettingsAsync())
+            .ReturnsAsync(new AppSettingsResult());
     }
 
     private AuthService CreateService() => new(
@@ -46,7 +51,8 @@ public class AuthServiceTests
         _tenantRepository.Object,
         _tenantMembershipRepository.Object,
         _userTenantRoleRepository.Object,
-        _multiTenantSettingsRepository.Object);
+        _multiTenantSettingsRepository.Object,
+        _appSettingsRepository.Object);
 
     [Fact]
     public async Task SelectTenantAsync_Throws_For_NonMember_NonSuperAdmin()
@@ -289,7 +295,7 @@ public class AuthServiceTests
             Email = "new@x.com",
             Password = "pw",
             TenantId = 7 // requested a different tenant — should be overridden
-        });
+        }, "https://app.test");
 
         Assert.Equal(42, result.TenantId);
         Assert.Equal("Default Clinic", result.TenantName);

@@ -156,4 +156,26 @@
 <data name="DefaultTenantNotAMembership" xml:space="preserve">
   <value>The selected tenant is not one of this user's memberships</value>
 </data>
+
+<data name="EmailConfirmSubject" xml:space="preserve">
+  <value>Confirm your email</value>
+</data>
+<data name="EmailConfirmTitle" xml:space="preserve">
+  <value>Confirm your email, {0}</value>
+</data>
+<data name="EmailConfirmBody" xml:space="preserve">
+  <value>Thanks for registering. Please confirm your email address to activate your account:</value>
+</data>
+<data name="EmailConfirmButton" xml:space="preserve">
+  <value>Confirm email</value>
+</data>
+<data name="EmailNotConfirmed" xml:space="preserve">
+  <value>Please confirm your email address before signing in. Check your inbox for the confirmation link.</value>
+</data>
+<data name="EmailConfirmationInvalid" xml:space="preserve">
+  <value>This confirmation link is invalid or has expired. Request a new one.</value>
+</data>
+<data name="AppSettingsNotFound" xml:space="preserve">
+  <value>Application settings have not been initialized.</value>
+</data>
 </root>

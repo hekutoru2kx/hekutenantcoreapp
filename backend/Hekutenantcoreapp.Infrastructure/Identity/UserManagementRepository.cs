@@ -132,7 +132,10 @@ public class UserManagementRepository : IUserManagementRepository
             Email = request.Email,
             UserName = request.UserName,
             MustChangePassword = true,
-            IsActive = true
+            IsActive = true,
+            // Admin-provisioned accounts are vouched for and never go through the
+            // self-service confirm flow, so they bypass the email-confirmation gate.
+            EmailConfirmed = true
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);

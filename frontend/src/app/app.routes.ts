@@ -17,12 +17,15 @@ import { EmployeeManagement } from './pages/admin/employee-management/employee-m
 import { TenantRoleManagement } from './pages/admin/tenant-role-management/tenant-role-management';
 import { EmployeeRoleAssignment } from './pages/admin/employee-role-assignment/employee-role-assignment';
 import { MultiTenantSettingsPage } from './pages/admin/multi-tenant-settings/multi-tenant-settings';
+import { AppSettingsPage } from './pages/admin/app-settings/app-settings';
+import { ConfirmEmail } from './pages/user/confirm-email/confirm-email';
 
 
 export const routes: Routes = [
   { path: '', component: Landing },
   { path: 'login', component: Login },
   { path: 'register', component: Register },
+  { path: 'confirm-email', component: ConfirmEmail },
   { path: 'tenant-picker', component: TenantPicker, canActivate: [authGuard] },
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard, tenantGuard] },
   { path: 'change-password', component: ChangePassword, canActivate: [authGuard] } ,
@@ -31,6 +34,7 @@ export const routes: Routes = [
   // Platform (System)
   { path: 'system/platform/tenants', component: TenantManagement, canActivate: [authGuard, claimGuard('TenantsPermission', 'Read')] },
   { path: 'system/platform/multi-tenant-settings', component: MultiTenantSettingsPage, canActivate: [authGuard, claimGuard('MultiTenantSettingsPermission', 'Read')] },
+  { path: 'admin/settings', component: AppSettingsPage, canActivate: [authGuard, claimGuard('AppSettingsPermission', 'Read')] },
 
   // Identity (System + Tenant)
   { path: 'system/identity/users', component: UserManagement, canActivate: [authGuard, claimGuard('UserManagementPermission', 'Read')] },

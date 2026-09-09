@@ -26,6 +26,23 @@ public class EmailTemplates
         return (subject, html);
     }
 
+    public (string Subject, string Body) ConfirmEmail(string fullName, string confirmationUrl)
+    {
+        var subject = _localizer["EmailConfirmSubject"];
+        var title = string.Format(_localizer["EmailConfirmTitle"], fullName);
+        var body = _localizer["EmailConfirmBody"];
+        var button = _localizer["EmailConfirmButton"];
+
+        var html = $@"
+            <h2>{title}</h2>
+            <p>{body}</p>
+            <p><a href=""{confirmationUrl}"" style=""display:inline-block;padding:10px 18px;background:#1976d2;color:#ffffff;text-decoration:none;border-radius:4px;"">{button}</a></p>
+            <p style=""font-size:12px;color:#666666;word-break:break-all;"">{confirmationUrl}</p>
+        ";
+
+        return (subject, html);
+    }
+
     public (string Subject, string Body) PasswordChanged(string fullName)
     {
         var subject = _localizer["EmailPasswordChangedSubject"];

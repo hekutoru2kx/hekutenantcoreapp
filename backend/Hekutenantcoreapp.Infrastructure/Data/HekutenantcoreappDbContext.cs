@@ -27,6 +27,9 @@ public class HekutenantcoreappDbContext : IdentityDbContext<ApplicationUser>
     // Global platform config — singleton row, see MultiTenantSettings.
     public DbSet<MultiTenantSettings> MultiTenantSettings => Set<MultiTenantSettings>();
 
+    // App-wide, admin-configurable settings — singleton row, see AppSettings.
+    public DbSet<AppSettings> AppSettings => Set<AppSettings>();
+
     // Generic translations for free-text field values on any entity — see LocalizedText.
     public DbSet<LocalizedText> LocalizedTexts => Set<LocalizedText>();
 

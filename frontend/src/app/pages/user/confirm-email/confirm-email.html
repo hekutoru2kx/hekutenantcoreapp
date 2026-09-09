@@ -1,0 +1,61 @@
+<div class="confirm-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ 'auth.confirmEmail.title' | transloco }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      @switch (mode()) {
+        @case ('confirming') {
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          <p>{{ 'auth.confirmEmail.confirming' | transloco }}</p>
+        }
+
+        @case ('confirmed') {
+          <p class="success">{{ 'auth.confirmEmail.success' | transloco }}</p>
+          <button mat-flat-button (click)="goToLogin()">
+            {{ 'auth.confirmEmail.goToLogin' | transloco }}
+          </button>
+        }
+
+        @case ('failed') {
+          <p class="error">{{ errorMessage() }}</p>
+          <p>{{ 'auth.confirmEmail.resendPrompt' | transloco }}</p>
+          <form [formGroup]="form" (ngSubmit)="resend()">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'auth.email' | transloco }}</mat-label>
+              <input matInput type="email" formControlName="email">
+            </mat-form-field>
+            @if (resendSent()) {
+              <p class="success">{{ 'auth.confirmEmail.resent' | transloco }}</p>
+            }
+            <button mat-flat-button type="submit" [disabled]="form.invalid || resending()">
+              {{ 'auth.confirmEmail.resend' | transloco }}
+            </button>
+          </form>
+        }
+
+        @default {
+          <p>{{ 'auth.confirmEmail.checkInbox' | transloco }}</p>
+          <p>{{ 'auth.confirmEmail.resendPrompt' | transloco }}</p>
+          <form [formGroup]="form" (ngSubmit)="resend()">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'auth.email' | transloco }}</mat-label>
+              <input matInput type="email" formControlName="email">
+            </mat-form-field>
+            @if (resendSent()) {
+              <p class="success">{{ 'auth.confirmEmail.resent' | transloco }}</p>
+            }
+            <button mat-flat-button type="submit" [disabled]="form.invalid || resending()">
+              {{ 'auth.confirmEmail.resend' | transloco }}
+            </button>
+          </form>
+        }
+      }
+
+      <p class="login-link">
+        <a (click)="goToLogin()">{{ 'auth.confirmEmail.backToLogin' | transloco }}</a>
+      </p>
+    </mat-card-content>
+  </mat-card>
+</div>

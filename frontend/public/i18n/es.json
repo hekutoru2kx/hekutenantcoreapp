@@ -30,6 +30,7 @@
     "systemRoles": "Roles",
     "systemTenants": "Entidades",
     "systemMultiTenantSettings": "Configuración Multi-Tenant",
+    "settings": "Configuración",
     "adminEmployees": "Empleados",
     "adminRoles": "Roles",
     "profile": "Mi perfil",
@@ -76,7 +77,20 @@
     "registrationFailed": "Error al registrarse",
     "orContinueWith": "o continúa con",
     "changePasswordFailed": "Error al cambiar la contraseña",
-    "tenant": "Entidad"
+    "tenant": "Entidad",
+    "confirmEmail": {
+      "title": "Confirma tu correo electrónico",
+      "confirming": "Confirmando tu correo electrónico…",
+      "success": "Tu dirección de correo electrónico está confirmada. Ya puedes iniciar sesión.",
+      "failed": "No pudimos confirmar tu dirección de correo electrónico.",
+      "goToLogin": "Ir a iniciar sesión",
+      "backToLogin": "Volver a iniciar sesión",
+      "checkInbox": "Enviamos un enlace de confirmación a tu dirección de correo electrónico. Haz clic en él para activar tu cuenta.",
+      "resendPrompt": "¿No lo recibiste? Ingresa tu dirección de correo electrónico para enviar un nuevo enlace.",
+      "resend": "Reenviar correo de confirmación",
+      "resent": "Si esa dirección aún necesita confirmación, un nuevo enlace está en camino.",
+      "notReceived": "¿No has confirmado tu dirección de correo electrónico?"
+    }
   },
   "dashboard": {
     "welcome": "Bienvenido",
@@ -131,6 +145,14 @@
       "deleteRoleTitle": "Eliminar rol",
       "confirmDelete": "¿Estás seguro de que deseas eliminar el rol \"{{name}}\"? Cualquier usuario que tenga asignado este rol perderá los permisos que otorga. Esta acción no se puede deshacer.",
       "restoreDefaults": "Restaurar roles predeterminados"
+    },
+    "appSettings": {
+      "title": "Configuración de la aplicación",
+      "hint": "Configuración global que aplica a todos los usuarios.",
+      "requireEmailConfirmation": "Requerir confirmación de correo al registrarse",
+      "requireEmailConfirmationHint": "Cuando está activado, los usuarios nuevos deben hacer clic en un enlace enviado a su correo electrónico antes de poder iniciar sesión. Las cuentas existentes no se ven afectadas.",
+      "save": "Guardar",
+      "saveSuccess": "Configuración guardada."
     },
     "tenants": {
       "title": "Gestión de entidades",

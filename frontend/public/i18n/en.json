@@ -30,6 +30,7 @@
     "systemRoles": "Roles",
     "systemTenants": "Tenants",
     "systemMultiTenantSettings": "Multi-Tenant Settings",
+    "settings": "Settings",
     "adminEmployees": "Employees",
     "adminRoles": "Roles",
     "profile": "My profile",
@@ -76,7 +77,20 @@
     "registrationFailed": "Registration failed",
     "orContinueWith": "or continue with",
     "changePasswordFailed": "Failed to change password",
-    "tenant": "Tenant"
+    "tenant": "Tenant",
+    "confirmEmail": {
+      "title": "Confirm your email",
+      "confirming": "Confirming your email…",
+      "success": "Your email address is confirmed. You can now sign in.",
+      "failed": "We couldn't confirm your email address.",
+      "goToLogin": "Go to sign in",
+      "backToLogin": "Back to sign in",
+      "checkInbox": "We sent a confirmation link to your email address. Click it to activate your account.",
+      "resendPrompt": "Didn't get it? Enter your email address to send a new link.",
+      "resend": "Resend confirmation email",
+      "resent": "If that address still needs confirmation, a new link is on its way.",
+      "notReceived": "Haven't confirmed your email address?"
+    }
   },
   "dashboard": {
     "welcome": "Welcome",
@@ -131,6 +145,14 @@
       "deleteRoleTitle": "Delete role",
       "confirmDelete": "Are you sure you want to delete the role \"{{name}}\"? Any user currently assigned to it will lose the permissions it grants. This cannot be undone.",
       "restoreDefaults": "Restore Default Roles"
+    },
+    "appSettings": {
+      "title": "Application Settings",
+      "hint": "App-wide settings that apply to every user.",
+      "requireEmailConfirmation": "Require email confirmation on registration",
+      "requireEmailConfirmationHint": "When on, new users must click a link sent to their email address before they can sign in. Existing accounts are unaffected.",
+      "save": "Save",
+      "saveSuccess": "Settings saved."
     },
     "tenants": {
       "title": "Tenant Management",

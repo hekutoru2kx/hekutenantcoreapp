@@ -39,6 +39,7 @@ export class Login {
   deactivatedMessage = '';
 
 errorMessage = signal('');
+  loginFailed = signal(false);
 
   form = this.fb.group({
     email: ['', Validators.required],
@@ -57,10 +58,15 @@ errorMessage = signal('');
         this.errorMessage.set(this.transloco.translate('common.networkError'));
       } else {
         this.errorMessage.set(err.error || this.transloco.translate('auth.invalidCredentials'));
+        this.loginFailed.set(true);
       }
     }
   });
 }
+
+  goToConfirmEmail(): void {
+    this.router.navigate(['/confirm-email'], { queryParams: { email: this.form.value.email || '' } });
+  }
 
   onGoogleCredential(idToken: string): void {
     this.auth.loginWithGoogle(idToken).subscribe({

@@ -77,7 +77,13 @@ export class Register implements OnInit {
     const { userName, email, password, tenantId } = this.form.value;
 
     this.auth.register(userName!, email!, password!, tenantId!).subscribe({
-      next: (res) => this.router.navigate([res.tenantId != null ? '/' : '/tenant-picker']),
+      next: (res) => {
+        if (res.requiresEmailConfirmation) {
+          this.router.navigate(['/confirm-email'], { queryParams: { email } });
+        } else {
+          this.router.navigate([res.tenantId != null ? '/' : '/tenant-picker']);
+        }
+      },
       error: (err) => {
         if (err.status === 0) {
           this.errorMessage.set(this.transloco.translate('common.networkError'));

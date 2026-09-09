@@ -14,4 +14,8 @@ public class AuthResponseDto
     public string? TenantName { get; set; }
     public IList<TenantSummaryDto> AvailableTenants { get; set; } = new List<TenantSummaryDto>();
     public bool MultiTenantDisabled { get; set; }
+
+    // True when registration succeeded but the user must confirm their email before logging
+    // in. Token is empty in that case.
+    public bool RequiresEmailConfirmation { get; set; }
 }

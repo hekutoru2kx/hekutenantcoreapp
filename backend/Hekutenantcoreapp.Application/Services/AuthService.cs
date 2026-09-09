@@ -18,6 +18,7 @@ public class AuthService : IAuthService
     private readonly ITenantMembershipRepository _tenantMembershipRepository;
     private readonly IUserTenantRoleRepository _userTenantRoleRepository;
     private readonly IMultiTenantSettingsRepository _multiTenantSettingsRepository;
+    private readonly IAppSettingsRepository _appSettingsRepository;
 
     private readonly EmailTemplates _emailTemplates;
 
@@ -31,7 +32,8 @@ public class AuthService : IAuthService
         ITenantRepository tenantRepository,
         ITenantMembershipRepository tenantMembershipRepository,
         IUserTenantRoleRepository userTenantRoleRepository,
-        IMultiTenantSettingsRepository multiTenantSettingsRepository)
+        IMultiTenantSettingsRepository multiTenantSettingsRepository,
+        IAppSettingsRepository appSettingsRepository)
     {
         _userRepository = userRepository;
         _tokenService = tokenService;
@@ -42,10 +44,11 @@ public class AuthService : IAuthService
         _tenantMembershipRepository = tenantMembershipRepository;
         _userTenantRoleRepository = userTenantRoleRepository;
         _multiTenantSettingsRepository = multiTenantSettingsRepository;
+        _appSettingsRepository = appSettingsRepository;
         _emailTemplates = emailTemplates;
     }
 
-    public async Task<AuthResult> RegisterAsync(RegisterRequest request)
+    public async Task<AuthResult> RegisterAsync(RegisterRequest request, string confirmationBaseUrl)
     {
         // When the effective flag is on, the tenant dropdown is hidden client-side and the
         // system default tenant is used regardless of whatever the request carries.
@@ -57,14 +60,36 @@ public class AuthService : IAuthService
         if (!await _tenantRepository.IsActiveTenantAsync(tenantId))
             throw new Exception(_localizer["TenantNotActive"]);
 
+        var appSettings = await _appSettingsRepository.GetSettingsAsync();
+        var requireConfirmation = appSettings.RequireEmailConfirmation;
+
         var userId = await _userRepository.CreateUserAsync(new CreateUserRequest
         {
             UserName = request.UserName,
             Email = request.Email,
-            Password = request.Password
+            Password = request.Password,
+            EmailConfirmed = !requireConfirmation
         });
 
+        // The tenant membership is still created — confirming the address doesn't change which
+        // tenant the user asked to join; only the token is withheld until they confirm.
         await _tenantMembershipRepository.CreateAsync(userId, tenantId, TenantMembershipStatus.Active);
+
+        if (requireConfirmation)
+        {
+            var confirmToken = await _userRepository.GenerateEmailConfirmationTokenAsync(userId);
+            var confirmationUrl = BuildConfirmationUrl(confirmationBaseUrl, userId, confirmToken);
+            var (confirmSubject, confirmBody) = _emailTemplates.ConfirmEmail(request.UserName, confirmationUrl);
+            await _emailService.SendAsync(request.Email, confirmSubject, confirmBody);
+
+            return new AuthResult
+            {
+                UserId = userId,
+                Email = request.Email,
+                UserName = request.UserName,
+                RequiresEmailConfirmation = true
+            };
+        }
 
         var (_, roles, mustChangePassword, preferredTheme, _) = await _userRepository.GetUserInfoAsync(userId);
         var tenant = await _tenantRepository.GetTenantByIdAsync(tenantId);
@@ -83,9 +108,41 @@ public class AuthService : IAuthService
         var userId = await _userRepository.ValidateUserAsync(email, password)
             ?? throw new Exception(_localizer["InvalidCredentials"]);
 
+        var appSettings = await _appSettingsRepository.GetSettingsAsync();
+        if (appSettings.RequireEmailConfirmation && !await _userRepository.IsEmailConfirmedAsync(userId))
+            throw new Exception(_localizer["EmailNotConfirmed"]);
+
         var (userName, roles, mustChangePassword, preferredTheme, defaultTenantId) = await _userRepository.GetUserInfoAsync(userId);
         return await ResolveAndMintAsync(userId, email, userName, roles.Contains("SuperAdmin"), mustChangePassword, preferredTheme, defaultTenantId);
     }
+
+    public async Task ConfirmEmailAsync(string userId, string token)
+    {
+        var confirmed = await _userRepository.ConfirmEmailAsync(userId, token);
+        if (!confirmed)
+            throw new Exception(_localizer["EmailConfirmationInvalid"]);
+    }
+
+    // Silent no-op when confirmation isn't required, the address isn't registered, or it's
+    // already confirmed — the caller always returns 200 so this never reveals which.
+    public async Task ResendConfirmationAsync(string email, string confirmationBaseUrl)
+    {
+        var appSettings = await _appSettingsRepository.GetSettingsAsync();
+        if (!appSettings.RequireEmailConfirmation) return;
+
+        var userId = await _userRepository.FindUserIdByEmailAsync(email);
+        if (userId == null) return;
+        if (await _userRepository.IsEmailConfirmedAsync(userId)) return;
+
+        var profile = await _userRepository.GetProfileAsync(userId);
+        var confirmToken = await _userRepository.GenerateEmailConfirmationTokenAsync(userId);
+        var confirmationUrl = BuildConfirmationUrl(confirmationBaseUrl, userId, confirmToken);
+        var (subject, body) = _emailTemplates.ConfirmEmail(profile.UserName, confirmationUrl);
+        await _emailService.SendAsync(profile.Email, subject, body);
+    }
+
+    private static string BuildConfirmationUrl(string baseUrl, string userId, string token) =>
+        $"{baseUrl.TrimEnd('/')}/confirm-email?userId={Uri.EscapeDataString(userId)}&token={Uri.EscapeDataString(token)}";
 
     public async Task AssignRoleAsync(string email, string role)
     {

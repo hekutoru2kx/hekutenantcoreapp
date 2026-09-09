@@ -19,4 +19,9 @@ public class AuthResult
     // Mirrors MultiTenantSettings.MultiTenantDisabled at mint time — the frontend uses this to
     // hide the nav-bar "join another tenant" link without a separate round trip.
     public bool MultiTenantDisabled { get; set; }
+
+    // True when registration succeeded but the account is unconfirmed and email confirmation
+    // is required — no token is issued and the client should prompt the user to check their
+    // inbox instead of treating this as a logged-in session.
+    public bool RequiresEmailConfirmation { get; set; }
 }

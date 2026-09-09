@@ -43,3 +43,14 @@ app-google-sign-in-button {
     color: var(--mat-sys-primary);
   }
 }
+
+.confirm-link {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 13px;
+
+  a {
+    cursor: pointer;
+    color: var(--mat-sys-primary);
+  }
+}

@@ -95,6 +95,9 @@ builder.Services.AddScoped<ILocalizedTextRepository, LocalizedTextRepository>();
 //Multi-tenant settings (SuperAdmin-only, singleton settings row) — drives AuthService's tenant resolution
 builder.Services.AddScoped<IMultiTenantSettingsService, MultiTenantSettingsService>();
 builder.Services.AddScoped<IMultiTenantSettingsRepository, MultiTenantSettingsRepository>();
+//App-wide admin settings (singleton settings row) — e.g. require-email-confirmation
+builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
+builder.Services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
 //Export safety cap (shared by every repository's unpaged GetAllXAsync) — null/<=0 is unlimited
 builder.Services.AddSingleton(new ExportSettings(builder.Configuration.GetValue<int?>("ExportMaxRows")));
 
@@ -164,6 +167,9 @@ using (var scope = app.Services.CreateScope())
     // Multi-tenant settings singleton row (seeded with both flags off, no default tenant) —
     // read/updated by the SuperAdmin-only admin page and consulted by AuthService at login.
     await MultiTenantSettingsSeeder.SeedAsync(db);
+
+    // App-wide settings singleton row (require-email-confirmation off by default).
+    await AppSettingsSeeder.SeedAsync(db);
 
     // SuperAdmin: global, platform-wide role (manages tenants themselves, role definitions,
     // system-wide user administration). Always has every registered permission, so it can

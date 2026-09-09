@@ -29,6 +29,13 @@
         </button>
       </form>
 
+      @if (loginFailed()) {
+        <p class="confirm-link">
+          {{ 'auth.confirmEmail.notReceived' | transloco }}
+          <a (click)="goToConfirmEmail()">{{ 'auth.confirmEmail.resend' | transloco }}</a>
+        </p>
+      }
+
       <p class="divider">{{ 'auth.orContinueWith' | transloco }}</p>
       <app-google-sign-in-button (credential)="onGoogleCredential($event)"></app-google-sign-in-button>
 

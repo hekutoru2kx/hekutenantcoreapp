@@ -52,7 +52,7 @@
     }
 
     <!-- System scope: bounded contexts that are SuperAdmin-exclusive -->
-    @if (auth.hasClaim('TenantsPermission', 'Read') || auth.hasClaim('RolesPermission', 'Read') || auth.hasClaim('UserManagementPermission', 'Read') || auth.hasClaim('MultiTenantSettingsPermission', 'Read')) {
+    @if (auth.hasClaim('TenantsPermission', 'Read') || auth.hasClaim('RolesPermission', 'Read') || auth.hasClaim('UserManagementPermission', 'Read') || auth.hasClaim('MultiTenantSettingsPermission', 'Read') || auth.hasClaim('AppSettingsPermission', 'Read')) {
       <button mat-icon-button [matMenuTriggerFor]="systemMenu" [attr.aria-label]="'nav.system' | transloco">
         <mat-icon>shield</mat-icon>
       </button>
@@ -61,7 +61,7 @@
           <strong>{{ 'nav.system' | transloco }}</strong>
         </div>
         <mat-divider></mat-divider>
-        @if (auth.hasClaim('TenantsPermission', 'Read') || auth.hasClaim('MultiTenantSettingsPermission', 'Read')) {
+        @if (auth.hasClaim('TenantsPermission', 'Read') || auth.hasClaim('MultiTenantSettingsPermission', 'Read') || auth.hasClaim('AppSettingsPermission', 'Read')) {
           <button mat-menu-item [matMenuTriggerFor]="platformMenu" appSubmenuAlign>
             <mat-icon>business</mat-icon>
             <span>{{ 'nav.platform' | transloco }}</span>
@@ -86,6 +86,12 @@
           <a mat-menu-item routerLink="/system/platform/multi-tenant-settings">
             <mat-icon>domain_disabled</mat-icon>
             <span>{{ 'nav.systemMultiTenantSettings' | transloco }}</span>
+          </a>
+        }
+        @if (auth.hasClaim('AppSettingsPermission', 'Read')) {
+          <a mat-menu-item routerLink="/admin/settings">
+            <mat-icon>settings</mat-icon>
+            <span>{{ 'nav.settings' | transloco }}</span>
           </a>
         }
       </mat-menu>

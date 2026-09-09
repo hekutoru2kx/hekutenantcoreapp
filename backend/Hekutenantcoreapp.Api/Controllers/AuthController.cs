@@ -2,6 +2,7 @@ using Hekutenantcoreapp.Application.DTOs;
 using Hekutenantcoreapp.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
 using Hekutenantcoreapp.Domain.Models;
 using System.Security.Claims;
 
@@ -13,11 +14,13 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly IMultiTenantSettingsService _multiTenantSettingsService;
+    private readonly IConfiguration _configuration;
 
-    public AuthController(IAuthService authService, IMultiTenantSettingsService multiTenantSettingsService)
+    public AuthController(IAuthService authService, IMultiTenantSettingsService multiTenantSettingsService, IConfiguration configuration)
     {
         _authService = authService;
         _multiTenantSettingsService = multiTenantSettingsService;
+        _configuration = configuration;
     }
 
     // [AllowAnonymous] pre-auth lookup for the Register page: whether it should show a tenant
@@ -46,7 +49,7 @@ public class AuthController : ControllerBase
                 Email = dto.Email,
                 Password = dto.Password,
                 TenantId = dto.TenantId
-            });
+            }, GetFrontendBaseUrl());
             return Ok(MapToDto(result));
         }
         catch (Exception ex)
@@ -124,6 +127,28 @@ public class AuthController : ControllerBase
         return Ok(tenants.Select(t => new TenantSummaryDto { Id = t.Id, Name = t.Name }));
     }
 
+    [HttpPost("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail(ConfirmEmailDto dto)
+    {
+        try
+        {
+            await _authService.ConfirmEmailAsync(dto.UserId, dto.Token);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost("resend-confirmation")]
+    public async Task<IActionResult> ResendConfirmation(ResendConfirmationDto dto)
+    {
+        // Always 200 — never reveal whether the address is registered or already confirmed.
+        await _authService.ResendConfirmationAsync(dto.Email, GetFrontendBaseUrl());
+        return Ok();
+    }
+
     [HttpPost("assign-role")]
     [Authorize(Roles = "SuperAdmin")]
     public async Task<IActionResult> AssignRole([FromBody] AssignRoleDto dto)
@@ -149,6 +174,18 @@ public class AuthController : ControllerBase
         TenantId = result.TenantId,
         TenantName = result.TenantName,
         AvailableTenants = result.AvailableTenants.Select(t => new TenantSummaryDto { Id = t.Id, Name = t.Name }).ToList(),
-        MultiTenantDisabled = result.MultiTenantDisabled
+        MultiTenantDisabled = result.MultiTenantDisabled,
+        RequiresEmailConfirmation = result.RequiresEmailConfirmation
     };
+
+    // Where email confirmation links point. Configured App:FrontendBaseUrl wins; otherwise
+    // fall back to this request's own origin, which is correct in production where the SPA is
+    // served from the same host as the API.
+    private string GetFrontendBaseUrl()
+    {
+        var configured = _configuration["App:FrontendBaseUrl"];
+        return !string.IsNullOrWhiteSpace(configured)
+            ? configured
+            : $"{Request.Scheme}://{Request.Host}";
+    }
 }

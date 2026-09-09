@@ -30,6 +30,7 @@ public class UserRepository : IUserRepository
         {
             UserName = request.UserName,
             Email = request.Email,
+            EmailConfirmed = request.EmailConfirmed,
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
@@ -54,6 +55,34 @@ public class UserRepository : IUserRepository
     {
         var user = await _userManager.FindByEmailAsync(email);
         return user?.Id;
+    }
+
+    public async Task<bool> IsEmailConfirmedAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId)
+            ?? throw new Exception(_localizer["UserNotFound"]);
+
+        return user.EmailConfirmed;
+    }
+
+    public async Task<string> GenerateEmailConfirmationTokenAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId)
+            ?? throw new Exception(_localizer["UserNotFound"]);
+
+        return await _userManager.GenerateEmailConfirmationTokenAsync(user);
+    }
+
+    // Returns true when the address ends up confirmed — including the already-confirmed case,
+    // so a link opened twice reads as success rather than an error.
+    public async Task<bool> ConfirmEmailAsync(string userId, string token)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null) return false;
+        if (user.EmailConfirmed) return true;
+
+        var result = await _userManager.ConfirmEmailAsync(user, token);
+        return result.Succeeded;
     }
 
     public async Task AssignRoleAsync(string email, string role)
@@ -281,6 +310,14 @@ public async Task<(string UserId, bool IsNewUser)> FindOrCreateGoogleUserAsync(G
         var linkResult = await _userManager.AddLoginAsync(user, new UserLoginInfo(provider, googleUser.Subject, provider));
         if (!linkResult.Succeeded)
             throw new Exception(string.Join(", ", linkResult.Errors.Select(e => e.Description)));
+
+        // Signing in through Google proves ownership of the address, so an account that
+        // registered with a password but never confirmed becomes confirmed here.
+        if (!user.EmailConfirmed)
+        {
+            user.EmailConfirmed = true;
+            await _userManager.UpdateAsync(user);
+        }
 
         return (user.Id, false);
     }
