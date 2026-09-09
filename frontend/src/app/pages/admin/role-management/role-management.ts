@@ -1,7 +1,9 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
+import { MatSortModule, MatSort } from '@angular/material/sort';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
@@ -15,8 +17,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { Roles, RoleItem, PermissionModule, PermissionClaim } from '../../../services/role-management';
 import { ConfirmDialog } from '../../../components/confirm-dialog/confirm-dialog';
 import { ColumnReorder } from '../../../components/column-reorder/column-reorder';
-import { exportToCsv, ExportColumn } from '../../../shared/csv-export';
-import { loadColumnPreferences, saveColumnPreferences } from '../../../shared/column-preferences';
+import { DataTableController } from '../../../shared/data-table-controller';
 
 @Component({
   selector: 'app-role-management',
@@ -24,6 +25,8 @@ import { loadColumnPreferences, saveColumnPreferences } from '../../../shared/co
     CommonModule,
     ReactiveFormsModule,
     MatTableModule,
+    MatSortModule,
+    MatPaginatorModule,
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
@@ -44,18 +47,36 @@ export class RoleManagement implements OnInit {
   private transloco = inject(TranslocoService);
   private dialog = inject(MatDialog);
 
-  roles = signal<RoleItem[]>([]);
   catalog = signal<PermissionModule[]>([]);
 
-  private readonly tableKey = 'roles';
-  private readonly baseColumns = ['name', 'claims'];
-  columnOrder = signal<string[]>([...this.baseColumns]);
-  hiddenColumns = signal<Set<string>>(new Set());
-  displayedColumns = computed(() => [...this.columnOrder().filter(c => !this.hiddenColumns().has(c)), 'actions']);
+  // Client mode: the full role list is small, so sort + paginate happen in the browser.
+  table = new DataTableController<RoleItem>({
+    tableKey: 'roles',
+    mode: 'client',
+    defaultSort: { active: 'name', direction: 'asc' },
+    columns: [
+      {
+        key: 'name',
+        header: () => this.transloco.translate('admin.roles.roleName'),
+        sortable: true,
+        sortValue: (r) => r.name,
+        exportValue: (r) => r.name,
+      },
+      {
+        key: 'claims',
+        header: () => this.transloco.translate('admin.roles.claims'),
+        sortable: true,
+        sortValue: (r) => r.claims.length, // sort by how many permissions the role carries
+        exportValue: (r) => r.claims.map((c) => `${c.module}.${c.action}`).join('; '),
+      },
+    ],
+  });
+
+  @ViewChild(MatSort) set sort(s: MatSort) { if (s) this.table.attachSort(s); }
+  @ViewChild(MatPaginator) set paginator(p: MatPaginator) { if (p) this.table.attachPaginator(p); }
 
   showCreateForm = signal(false);
   errorMessage = signal<string | null>(null);
-  showColumnMenu = signal(false);
 
   editingRole = signal<string | null>(null);
   editingClaims = signal<Set<string>>(new Set());
@@ -65,31 +86,14 @@ export class RoleManagement implements OnInit {
   });
 
   ngOnInit(): void {
-    this.restoreColumnPreferences();
+    this.table.restore();
     this.loadRoles();
     this.loadCatalog();
   }
 
-  private restoreColumnPreferences(): void {
-    const saved = loadColumnPreferences(this.tableKey);
-    if (!saved) return;
-
-    const validOrder = saved.order.filter(c => this.baseColumns.includes(c));
-    const missing = this.baseColumns.filter(c => !validOrder.includes(c));
-    this.columnOrder.set([...validOrder, ...missing]);
-    this.hiddenColumns.set(new Set(saved.hidden.filter(c => this.baseColumns.includes(c))));
-  }
-
-  private persistColumnPreferences(): void {
-    saveColumnPreferences(this.tableKey, {
-      order: this.columnOrder(),
-      hidden: Array.from(this.hiddenColumns())
-    });
-  }
-
   loadRoles(): void {
     this.rolesService.getRoles().subscribe({
-      next: (data) => this.roles.set(data),
+      next: (data) => this.table.setData(data),
       error: (err) => this.errorMessage.set(err.error || this.transloco.translate('common.loadError'))
     });
   }
@@ -99,6 +103,10 @@ export class RoleManagement implements OnInit {
       next: (data) => this.catalog.set(data),
       error: (err) => this.errorMessage.set(err.error || this.transloco.translate('common.loadError'))
     });
+  }
+
+  exportRoles(): void {
+    this.table.exportRows('roles.csv');
   }
 
   toggleCreateForm(): void {
@@ -188,54 +196,5 @@ export class RoleManagement implements OnInit {
       },
       error: (err) => this.errorMessage.set(err.error || this.transloco.translate('common.saveError'))
     });
-  }
-
-  onColumnsReordered(newOrder: string[]): void {
-    this.columnOrder.set(newOrder);
-    this.persistColumnPreferences();
-  }
-
-  onColumnVisibilityToggled(key: string): void {
-    const updated = new Set(this.hiddenColumns());
-    if (updated.has(key)) updated.delete(key); else updated.add(key);
-    this.hiddenColumns.set(updated);
-    this.persistColumnPreferences();
-  }
-
-  reorderableColumns = computed(() => {
-    const defs = this.columnDefs();
-    const hidden = this.hiddenColumns();
-    return this.columnOrder().map(col => ({
-      key: col,
-      label: defs[col]?.header ?? col,
-      hidden: hidden.has(col)
-    }));
-  });
-
-  exportRoles(): void {
-    exportToCsv('roles.csv', this.getExportColumns(), this.roles());
-  }
-
-  private columnDefs(): Record<string, ExportColumn<RoleItem>> {
-    return {
-      name: {
-        key: 'name',
-        header: this.transloco.translate('admin.roles.roleName'),
-        getValue: (r) => r.name
-      },
-      claims: {
-        key: 'claims',
-        header: this.transloco.translate('admin.roles.claims'),
-        getValue: (r) => r.claims.map(c => `${c.module}.${c.action}`).join('; ')
-      }
-    };
-  }
-
-  private getExportColumns(): ExportColumn<RoleItem>[] {
-    const defs = this.columnDefs();
-    return this.displayedColumns()
-      .filter(col => col !== 'actions')
-      .map(col => defs[col])
-      .filter((col): col is ExportColumn<RoleItem> => !!col);
   }
 }

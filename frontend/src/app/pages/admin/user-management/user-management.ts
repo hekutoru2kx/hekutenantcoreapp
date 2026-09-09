@@ -1,9 +1,9 @@
-import { Component, inject, signal, computed, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
-import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -19,10 +19,8 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { Admin, UserListItem } from '../../../services/admin';
 import { TenantSummary } from '../../../services/auth';
 import { debounceTime, Subject } from 'rxjs';
-import { PAGINATION } from '../../../constants/pagination';
 import { ColumnReorder } from '../../../components/column-reorder/column-reorder';
-import { exportToCsv, ExportColumn } from '../../../shared/csv-export';
-import { loadColumnPreferences, saveColumnPreferences } from '../../../shared/column-preferences';
+import { DataTableController } from '../../../shared/data-table-controller';
 
 @Component({
   selector: 'app-user-management',
@@ -57,17 +55,31 @@ export class UserManagement implements OnInit {
   users = signal<UserListItem[]>([]);
   totalCount = signal(0);
 
-  private readonly tableKey = 'users';
-  private readonly baseColumns = ['userName', 'email', 'superAdmin', 'status', 'createdAt'];
-  columnOrder = signal<string[]>([...this.baseColumns]);
-  hiddenColumns = signal<Set<string>>(new Set());
-  displayedColumns = computed(() => [...this.columnOrder().filter(c => !this.hiddenColumns().has(c)), 'actions']);
-
-  pageIndex = 0;
-  pageSize = PAGINATION.defaultPageSize;
-  pageSizeOptions = PAGINATION.pageSizeOptions;
-  sortActive = 'userName';
-  sortDirection: 'asc' | 'desc' | '' = 'asc';
+  table = new DataTableController<UserListItem>({
+    tableKey: 'users',
+    defaultSort: { active: 'userName', direction: 'asc' },
+    persistSort: true,
+    onChange: () => this.loadUsers(),
+    columns: [
+      { key: 'userName', header: () => this.transloco.translate('admin.users.name'), sortable: true, exportValue: (u) => u.userName },
+      { key: 'email', header: () => this.transloco.translate('admin.users.email'), sortable: true, exportValue: (u) => u.email },
+      {
+        key: 'superAdmin',
+        header: () => this.transloco.translate('admin.users.superAdmin'),
+        exportValue: (u) => u.roles.includes('SuperAdmin')
+          ? this.transloco.translate('common.yes')
+          : this.transloco.translate('common.no'),
+      },
+      {
+        key: 'status',
+        header: () => this.transloco.translate('admin.users.status'),
+        exportValue: (u) => u.isActive
+          ? this.transloco.translate('common.yes')
+          : this.transloco.translate('common.no'),
+      },
+      { key: 'createdAt', header: () => this.transloco.translate('admin.users.createdAt'), sortable: true, exportValue: (u) => new Date(u.createdAt).toLocaleString() },
+    ],
+  });
 
   searchControl = this.fb.control('');
   statusFilterControl = this.fb.control<boolean | null>(null);
@@ -77,7 +89,6 @@ export class UserManagement implements OnInit {
   showCreateForm = signal(false);
   createdUserPassword = signal<string | null>(null);
   errorMessage = signal<string | null>(null);
-  showColumnMenu = signal(false);
 
   defaultTenantMenuUser = signal<UserListItem | null>(null);
   defaultTenantMenuTenants = signal<TenantSummary[]>([]);
@@ -90,49 +101,28 @@ export class UserManagement implements OnInit {
   });
 
   ngOnInit(): void {
-    this.restoreColumnPreferences();
+    this.table.restore();
 
     this.searchSubject.pipe(debounceTime(400)).subscribe(() => {
-      this.pageIndex = 0;
+      this.table.pageIndex = 0;
       this.loadUsers();
     });
 
     this.searchControl.valueChanges.subscribe(val => this.searchSubject.next(val || ''));
     this.statusFilterControl.valueChanges.subscribe(() => {
-      this.pageIndex = 0;
+      this.table.pageIndex = 0;
       this.loadUsers();
     });
 
     this.loadUsers();
   }
 
-  private restoreColumnPreferences(): void {
-    const saved = loadColumnPreferences(this.tableKey);
-    if (!saved) return;
-
-    const validOrder = saved.order.filter(c => this.baseColumns.includes(c));
-    const missing = this.baseColumns.filter(c => !validOrder.includes(c));
-    this.columnOrder.set([...validOrder, ...missing]);
-    this.hiddenColumns.set(new Set(saved.hidden.filter(c => this.baseColumns.includes(c))));
-    if (saved.sortActive) this.sortActive = saved.sortActive;
-    if (saved.sortDirection !== undefined) this.sortDirection = saved.sortDirection as 'asc' | 'desc' | '';
-  }
-
-  private persistColumnPreferences(): void {
-    saveColumnPreferences(this.tableKey, {
-      order: this.columnOrder(),
-      hidden: Array.from(this.hiddenColumns()),
-      sortActive: this.sortActive,
-      sortDirection: this.sortDirection
-    });
-  }
-
   loadUsers(): void {
     this.adminService.getUsers({
-      page: this.pageIndex + 1,
-      pageSize: this.pageSize,
-      sortBy: this.sortActive,
-      sortDirection: this.sortDirection || 'asc',
+      page: this.table.page,
+      pageSize: this.table.pageSize,
+      sortBy: this.table.sortActive,
+      sortDirection: this.table.sortDirection || 'asc',
       search: this.searchControl.value || undefined,
       statusFilter: this.statusFilterControl.value ?? undefined
     }).subscribe({
@@ -144,18 +134,16 @@ export class UserManagement implements OnInit {
     });
   }
 
-  onPageChange(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
-    this.loadUsers();
-  }
-
-  onSortChange(sort: Sort): void {
-    this.sortActive = sort.active;
-    this.sortDirection = sort.direction;
-    this.pageIndex = 0;
-    this.persistColumnPreferences();
-    this.loadUsers();
+  exportUsers(): void {
+    this.adminService.getAllUsers({
+      sortBy: this.table.sortActive,
+      sortDirection: this.table.sortDirection || 'asc',
+      search: this.searchControl.value || undefined,
+      statusFilter: this.statusFilterControl.value ?? undefined
+    }).subscribe({
+      next: (data) => this.table.exportRows('users.csv', data),
+      error: (err) => this.errorMessage.set(err.error || this.transloco.translate('common.loadError'))
+    });
   }
 
   toggleCreateForm(): void {
@@ -248,77 +236,5 @@ export class UserManagement implements OnInit {
       next: () => this.loadUsers(),
       error: (err) => this.errorMessage.set(err.error || this.transloco.translate('common.saveError'))
     });
-  }
-
-  onColumnsReordered(newOrder: string[]): void {
-    this.columnOrder.set(newOrder);
-    this.persistColumnPreferences();
-  }
-
-  onColumnVisibilityToggled(key: string): void {
-    const updated = new Set(this.hiddenColumns());
-    if (updated.has(key)) updated.delete(key); else updated.add(key);
-    this.hiddenColumns.set(updated);
-    this.persistColumnPreferences();
-  }
-
-  reorderableColumns = computed(() => {
-    const defs = this.columnDefs();
-    const hidden = this.hiddenColumns();
-    return this.columnOrder().map(col => ({
-      key: col,
-      label: defs[col]?.header ?? col,
-      hidden: hidden.has(col)
-    }));
-  });
-
-  exportUsers(): void {
-    this.adminService.getAllUsers({
-      sortBy: this.sortActive,
-      sortDirection: this.sortDirection || 'asc',
-      search: this.searchControl.value || undefined,
-      statusFilter: this.statusFilterControl.value ?? undefined
-    }).subscribe({
-      next: (data) => exportToCsv('users.csv', this.getExportColumns(), data),
-      error: (err) => this.errorMessage.set(err.error || this.transloco.translate('common.loadError'))
-    });
-  }
-
-  private columnDefs(): Record<string, ExportColumn<UserListItem>> {
-    return {
-      userName: {
-        key: 'userName',
-        header: this.transloco.translate('admin.users.name'),
-        getValue: (u) => u.userName
-      },
-      email: {
-        key: 'email',
-        header: this.transloco.translate('admin.users.email'),
-        getValue: (u) => u.email
-      },
-      superAdmin: {
-        key: 'superAdmin',
-        header: this.transloco.translate('admin.users.superAdmin'),
-        getValue: (u) => u.roles.includes('SuperAdmin') ? this.transloco.translate('common.yes') : this.transloco.translate('common.no')
-      },
-      status: {
-        key: 'status',
-        header: this.transloco.translate('admin.users.status'),
-        getValue: (u) => u.isActive ? this.transloco.translate('common.yes') : this.transloco.translate('common.no')
-      },
-      createdAt: {
-        key: 'createdAt',
-        header: this.transloco.translate('admin.users.createdAt'),
-        getValue: (u) => new Date(u.createdAt).toLocaleString()
-      }
-    };
-  }
-
-  private getExportColumns(): ExportColumn<UserListItem>[] {
-    const defs = this.columnDefs();
-    return this.displayedColumns()
-      .filter(col => col !== 'actions')
-      .map(col => defs[col])
-      .filter((col): col is ExportColumn<UserListItem> => !!col);
   }
 }

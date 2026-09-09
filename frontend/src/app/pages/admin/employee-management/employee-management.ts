@@ -1,9 +1,9 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSortModule, Sort } from '@angular/material/sort';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
@@ -20,11 +20,9 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { Auth } from '../../../services/auth';
 import { EmployeeManagement as EmployeeManagementService, EmployeeItem } from '../../../services/employee-management';
 import { debounceTime, Subject } from 'rxjs';
-import { PAGINATION } from '../../../constants/pagination';
 import { YmdDateAdapter, YMD_DATE_FORMATS } from '../../../shared/ymd-date-adapter';
 import { ColumnReorder } from '../../../components/column-reorder/column-reorder';
-import { exportToCsv, ExportColumn } from '../../../shared/csv-export';
-import { loadColumnPreferences, saveColumnPreferences } from '../../../shared/column-preferences';
+import { DataTableController } from '../../../shared/data-table-controller';
 
 @Component({
   selector: 'app-employee-management',
@@ -67,17 +65,23 @@ export class EmployeeManagement implements OnInit {
   loading = signal(false);
   availableRoles = signal<string[]>([]);
 
-  private readonly tableKey = 'employees';
-  private readonly baseColumns = ['userName', 'email', 'jobTitle', 'roles', 'isActive'];
-  columnOrder = signal<string[]>([...this.baseColumns]);
-  hiddenColumns = signal<Set<string>>(new Set());
-  displayedColumns = computed(() => [...this.columnOrder().filter(c => !this.hiddenColumns().has(c)), 'actions']);
-
-  pageSize = PAGINATION.defaultPageSize;
-  pageSizeOptions = PAGINATION.pageSizeOptions;
-  pageIndex = 0;
-  sortActive = 'jobTitle';
-  sortDirection: 'asc' | 'desc' | '' = 'asc';
+  table = new DataTableController<EmployeeItem>({
+    tableKey: 'employees',
+    defaultSort: { active: 'jobTitle', direction: 'asc' },
+    persistSort: true,
+    onChange: () => this.loadEmployees(),
+    columns: [
+      { key: 'userName', header: () => this.transloco.translate('admin.users.name'), exportValue: (e) => e.userName },
+      { key: 'email', header: () => this.transloco.translate('admin.users.email'), exportValue: (e) => e.email },
+      { key: 'jobTitle', header: () => this.transloco.translate('admin.employees.jobTitle'), sortable: true, exportValue: (e) => e.jobTitle || '' },
+      { key: 'roles', header: () => this.transloco.translate('admin.users.roles'), exportValue: (e) => e.roles.join('; ') },
+      {
+        key: 'isActive',
+        header: () => this.transloco.translate('admin.users.status'),
+        exportValue: (e) => e.isActive ? this.transloco.translate('common.yes') : this.transloco.translate('common.no'),
+      },
+    ],
+  });
 
   searchControl = this.fb.control('');
   private searchSubject = new Subject<string>();
@@ -85,7 +89,6 @@ export class EmployeeManagement implements OnInit {
   showInviteForm = signal(false);
   createdPassword = signal<string | null>(null);
   errorMessage = signal<string | null>(null);
-  showColumnMenu = signal(false);
 
   inviteForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -96,10 +99,10 @@ export class EmployeeManagement implements OnInit {
   });
 
   ngOnInit(): void {
-    this.restoreColumnPreferences();
+    this.table.restore();
 
     this.searchSubject.pipe(debounceTime(400)).subscribe(() => {
-      this.pageIndex = 0;
+      this.table.pageIndex = 0;
       this.loadEmployees();
     });
 
@@ -108,34 +111,13 @@ export class EmployeeManagement implements OnInit {
     this.loadAvailableRoles();
   }
 
-  private restoreColumnPreferences(): void {
-    const saved = loadColumnPreferences(this.tableKey);
-    if (!saved) return;
-
-    const validOrder = saved.order.filter(c => this.baseColumns.includes(c));
-    const missing = this.baseColumns.filter(c => !validOrder.includes(c));
-    this.columnOrder.set([...validOrder, ...missing]);
-    this.hiddenColumns.set(new Set(saved.hidden.filter(c => this.baseColumns.includes(c))));
-    if (saved.sortActive) this.sortActive = saved.sortActive;
-    if (saved.sortDirection !== undefined) this.sortDirection = saved.sortDirection as 'asc' | 'desc' | '';
-  }
-
-  private persistColumnPreferences(): void {
-    saveColumnPreferences(this.tableKey, {
-      order: this.columnOrder(),
-      hidden: Array.from(this.hiddenColumns()),
-      sortActive: this.sortActive,
-      sortDirection: this.sortDirection
-    });
-  }
-
   loadEmployees(): void {
     this.loading.set(true);
     this.employeeService.getEmployees({
-      page: this.pageIndex + 1,
-      pageSize: this.pageSize,
-      sortBy: this.sortActive,
-      sortDirection: this.sortDirection || 'asc',
+      page: this.table.page,
+      pageSize: this.table.pageSize,
+      sortBy: this.table.sortActive,
+      sortDirection: this.table.sortDirection || 'asc',
       search: this.searchControl.value || undefined
     }).subscribe({
       next: (data) => {
@@ -160,18 +142,15 @@ export class EmployeeManagement implements OnInit {
     });
   }
 
-  onPageChange(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
-    this.loadEmployees();
-  }
-
-  onSortChange(sort: Sort): void {
-    this.sortActive = sort.active;
-    this.sortDirection = sort.direction;
-    this.pageIndex = 0;
-    this.persistColumnPreferences();
-    this.loadEmployees();
+  exportEmployees(): void {
+    this.employeeService.getAllEmployees({
+      sortBy: this.table.sortActive,
+      sortDirection: this.table.sortDirection || 'asc',
+      search: this.searchControl.value || undefined
+    }).subscribe({
+      next: (data) => this.table.exportRows('employees.csv', data),
+      error: (err) => this.errorMessage.set(err.error || this.transloco.translate('common.loadError'))
+    });
   }
 
   toggleInviteForm(): void {
@@ -221,76 +200,5 @@ export class EmployeeManagement implements OnInit {
 
   canUpdateEmployee(): boolean {
     return this.auth.hasClaim('EmployeesPermission', 'Update');
-  }
-
-  onColumnsReordered(newOrder: string[]): void {
-    this.columnOrder.set(newOrder);
-    this.persistColumnPreferences();
-  }
-
-  onColumnVisibilityToggled(key: string): void {
-    const updated = new Set(this.hiddenColumns());
-    if (updated.has(key)) updated.delete(key); else updated.add(key);
-    this.hiddenColumns.set(updated);
-    this.persistColumnPreferences();
-  }
-
-  reorderableColumns = computed(() => {
-    const defs = this.columnDefs();
-    const hidden = this.hiddenColumns();
-    return this.columnOrder().map(col => ({
-      key: col,
-      label: defs[col]?.header ?? col,
-      hidden: hidden.has(col)
-    }));
-  });
-
-  exportEmployees(): void {
-    this.employeeService.getAllEmployees({
-      sortBy: this.sortActive,
-      sortDirection: this.sortDirection || 'asc',
-      search: this.searchControl.value || undefined
-    }).subscribe({
-      next: (data) => exportToCsv('employees.csv', this.getExportColumns(), data),
-      error: (err) => this.errorMessage.set(err.error || this.transloco.translate('common.loadError'))
-    });
-  }
-
-  private columnDefs(): Record<string, ExportColumn<EmployeeItem>> {
-    return {
-      userName: {
-        key: 'userName',
-        header: this.transloco.translate('admin.users.name'),
-        getValue: (e) => e.userName
-      },
-      email: {
-        key: 'email',
-        header: this.transloco.translate('admin.users.email'),
-        getValue: (e) => e.email
-      },
-      jobTitle: {
-        key: 'jobTitle',
-        header: this.transloco.translate('admin.employees.jobTitle'),
-        getValue: (e) => e.jobTitle || ''
-      },
-      roles: {
-        key: 'roles',
-        header: this.transloco.translate('admin.users.roles'),
-        getValue: (e) => e.roles.join('; ')
-      },
-      isActive: {
-        key: 'isActive',
-        header: this.transloco.translate('admin.users.status'),
-        getValue: (e) => e.isActive ? this.transloco.translate('common.yes') : this.transloco.translate('common.no')
-      }
-    };
-  }
-
-  private getExportColumns(): ExportColumn<EmployeeItem>[] {
-    const defs = this.columnDefs();
-    return this.displayedColumns()
-      .filter(col => col !== 'actions')
-      .map(col => defs[col])
-      .filter((col): col is ExportColumn<EmployeeItem> => !!col);
   }
 }

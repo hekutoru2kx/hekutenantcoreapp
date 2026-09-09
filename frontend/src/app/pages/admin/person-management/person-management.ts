@@ -1,9 +1,9 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSortModule, Sort } from '@angular/material/sort';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -16,11 +16,9 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Auth } from '../../../services/auth';
 import { environment } from '../../../../environments/environment';
 import { debounceTime, Subject } from 'rxjs';
-import { PAGINATION } from '../../../constants/pagination';
 import { PersonForm, PersonFormData } from '../../../components/person-form/person-form';
 import { ColumnReorder } from '../../../components/column-reorder/column-reorder';
-import { exportToCsv, ExportColumn } from '../../../shared/csv-export';
-import { loadColumnPreferences, saveColumnPreferences } from '../../../shared/column-preferences';
+import { DataTableController } from '../../../shared/data-table-controller';
 
 export interface PersonItem {
   id: number;
@@ -86,17 +84,36 @@ export class PersonManagement implements OnInit {
   totalCount = signal(0);
   loading = signal(false);
 
-  private readonly tableKey = 'persons';
-  private readonly baseColumns = ['lastName', 'firstName', 'email', 'document', 'phone', 'location'];
-  columnOrder = signal<string[]>([...this.baseColumns]);
-  hiddenColumns = signal<Set<string>>(new Set());
-  displayedColumns = computed(() => [...this.columnOrder().filter(c => !this.hiddenColumns().has(c)), 'actions']);
-
-  pageSize = PAGINATION.defaultPageSize;
-  pageSizeOptions = PAGINATION.pageSizeOptions;
-  pageIndex = 0;
-  sortActive = 'lastName';
-  sortDirection: 'asc' | 'desc' | '' = 'asc';
+  table = new DataTableController<PersonItem>({
+    tableKey: 'persons',
+    defaultSort: { active: 'lastName', direction: 'asc' },
+    persistSort: true,
+    onChange: () => this.loadPersons(),
+    columns: [
+      { key: 'lastName', header: () => this.transloco.translate('persons.lastName'), sortable: true, exportValue: (p) => p.lastName },
+      { key: 'firstName', header: () => this.transloco.translate('persons.firstName'), sortable: true, exportValue: (p) => p.firstName },
+      { key: 'email', header: () => this.transloco.translate('persons.email'), sortable: true, exportValue: (p) => p.email || '' },
+      {
+        key: 'document',
+        header: () => this.transloco.translate('persons.document'),
+        exportValue: (p) => p.documentType && p.documentId
+          ? `${this.transloco.translate('persons.docType_' + p.documentType + '_code')}: ${p.documentId}`
+          : '',
+      },
+      {
+        key: 'phone',
+        header: () => this.transloco.translate('persons.phone'),
+        exportValue: (p) => `${p.phone || ''}${p.phoneExtension ? ' ext. ' + p.phoneExtension : ''}`,
+      },
+      {
+        key: 'location',
+        header: () => this.transloco.translate('profile.location'),
+        sortable: true,
+        sortKey: 'countryId',
+        exportValue: (p) => [p.countryName, p.stateName, p.cityName].filter(Boolean).join(', '),
+      },
+    ],
+  });
 
   searchControl = this.fb.control('');
   private searchSubject = new Subject<string>();
@@ -104,13 +121,12 @@ export class PersonManagement implements OnInit {
   showForm = signal(false);
   editingPerson = signal<PersonItem | null>(null);
   errorMessage = signal<string | null>(null);
-  showColumnMenu = signal(false);
 
   ngOnInit(): void {
-    this.restoreColumnPreferences();
+    this.table.restore();
 
     this.searchSubject.pipe(debounceTime(400)).subscribe(() => {
-      this.pageIndex = 0;
+      this.table.pageIndex = 0;
       this.loadPersons();
     });
 
@@ -118,34 +134,13 @@ export class PersonManagement implements OnInit {
     this.loadPersons();
   }
 
-  private restoreColumnPreferences(): void {
-    const saved = loadColumnPreferences(this.tableKey);
-    if (!saved) return;
-
-    const validOrder = saved.order.filter(c => this.baseColumns.includes(c));
-    const missing = this.baseColumns.filter(c => !validOrder.includes(c));
-    this.columnOrder.set([...validOrder, ...missing]);
-    this.hiddenColumns.set(new Set(saved.hidden.filter(c => this.baseColumns.includes(c))));
-    if (saved.sortActive) this.sortActive = saved.sortActive;
-    if (saved.sortDirection !== undefined) this.sortDirection = saved.sortDirection as 'asc' | 'desc' | '';
-  }
-
-  private persistColumnPreferences(): void {
-    saveColumnPreferences(this.tableKey, {
-      order: this.columnOrder(),
-      hidden: Array.from(this.hiddenColumns()),
-      sortActive: this.sortActive,
-      sortDirection: this.sortDirection
-    });
-  }
-
   loadPersons(): void {
     this.loading.set(true);
     let params = new HttpParams()
-      .set('page', this.pageIndex + 1)
-      .set('pageSize', this.pageSize)
-      .set('sortBy', this.sortActive)
-      .set('sortDirection', this.sortDirection || 'asc');
+      .set('page', this.table.page)
+      .set('pageSize', this.table.pageSize)
+      .set('sortBy', this.table.sortActive)
+      .set('sortDirection', this.table.sortDirection || 'asc');
 
     if (this.searchControl.value)
       params = params.set('search', this.searchControl.value);
@@ -163,18 +158,18 @@ export class PersonManagement implements OnInit {
     });
   }
 
-  onPageChange(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
-    this.loadPersons();
-  }
+  exportPersons(): void {
+    let params = new HttpParams()
+      .set('sortBy', this.table.sortActive)
+      .set('sortDirection', this.table.sortDirection || 'asc');
 
-  onSortChange(sort: Sort): void {
-    this.sortActive = sort.active;
-    this.sortDirection = sort.direction;
-    this.pageIndex = 0;
-    this.persistColumnPreferences();
-    this.loadPersons();
+    if (this.searchControl.value)
+      params = params.set('search', this.searchControl.value);
+
+    this.http.get<PersonItem[]>(`${environment.apiUrl}/admin/organization/persons/export`, { params }).subscribe({
+      next: (data) => this.table.exportRows('persons.csv', data),
+      error: (err) => this.errorMessage.set(err.error || this.transloco.translate('common.loadError'))
+    });
   }
 
   toggleForm(person?: PersonItem): void {
@@ -223,87 +218,6 @@ export class PersonManagement implements OnInit {
 
   canUpdatePerson(): boolean {
     return this.auth.hasClaim('PersonsPermission', 'Update');
-  }
-
-  onColumnsReordered(newOrder: string[]): void {
-    this.columnOrder.set(newOrder);
-    this.persistColumnPreferences();
-  }
-
-  onColumnVisibilityToggled(key: string): void {
-    const updated = new Set(this.hiddenColumns());
-    if (updated.has(key)) updated.delete(key); else updated.add(key);
-    this.hiddenColumns.set(updated);
-    this.persistColumnPreferences();
-  }
-
-  reorderableColumns = computed(() => {
-    const defs = this.columnDefs();
-    const hidden = this.hiddenColumns();
-    return this.columnOrder().map(col => ({
-      key: col,
-      label: defs[col]?.header ?? col,
-      hidden: hidden.has(col)
-    }));
-  });
-
-  exportPersons(): void {
-    let params = new HttpParams()
-      .set('sortBy', this.sortActive)
-      .set('sortDirection', this.sortDirection || 'asc');
-
-    if (this.searchControl.value)
-      params = params.set('search', this.searchControl.value);
-
-    this.http.get<PersonItem[]>(`${environment.apiUrl}/admin/organization/persons/export`, { params }).subscribe({
-      next: (data) => exportToCsv('persons.csv', this.getExportColumns(), data),
-      error: (err) => this.errorMessage.set(err.error || this.transloco.translate('common.loadError'))
-    });
-  }
-
-  private columnDefs(): Record<string, ExportColumn<PersonItem>> {
-    return {
-      lastName: {
-        key: 'lastName',
-        header: this.transloco.translate('persons.lastName'),
-        getValue: (p) => p.lastName
-      },
-      firstName: {
-        key: 'firstName',
-        header: this.transloco.translate('persons.firstName'),
-        getValue: (p) => p.firstName
-      },
-      email: {
-        key: 'email',
-        header: this.transloco.translate('persons.email'),
-        getValue: (p) => p.email || ''
-      },
-      document: {
-        key: 'document',
-        header: this.transloco.translate('persons.document'),
-        getValue: (p) => p.documentType && p.documentId
-          ? `${this.transloco.translate('persons.docType_' + p.documentType + '_code')}: ${p.documentId}`
-          : ''
-      },
-      phone: {
-        key: 'phone',
-        header: this.transloco.translate('persons.phone'),
-        getValue: (p) => `${p.phone || ''}${p.phoneExtension ? ' ext. ' + p.phoneExtension : ''}`
-      },
-      location: {
-        key: 'location',
-        header: this.transloco.translate('profile.location'),
-        getValue: (p) => [p.countryName, p.stateName, p.cityName].filter(Boolean).join(', ')
-      }
-    };
-  }
-
-  private getExportColumns(): ExportColumn<PersonItem>[] {
-    const defs = this.columnDefs();
-    return this.displayedColumns()
-      .filter(col => col !== 'actions')
-      .map(col => defs[col])
-      .filter((col): col is ExportColumn<PersonItem> => !!col);
   }
 
   toPersonFormData(person: PersonItem): PersonFormData {
