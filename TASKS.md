@@ -1,8 +1,16 @@
 # Tasks
 
+Single source of truth for this project's tasks. Structure is shared across the whole
+family (ludemia, hekucoreapp, hekutenantcoreapp, gestamind): **Pending** = queued work,
+**Deferred** = intentionally postponed with a stated trigger, **Done** = shipped.
+
 ## Pending
 
 _Nothing pending._
+
+## Deferred — intentional, revisit on trigger
+
+_Nothing deferred._
 
 ## Done
 
