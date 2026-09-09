@@ -7,6 +7,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -18,18 +21,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Install Angular dependencies
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Build Angular
+        run: npm run build
+        working-directory: ./frontend
+
+      - name: Copy Angular build to wwwroot
+        # wwwroot is .gitignored; this rebuilt bundle is the single source of the deployed
+        # frontend, picked up by `dotnet publish ./backend` below.
+        run: |
+          New-Item -ItemType Directory -Force -Path ./backend/Hekutenantcoreapp.Api/wwwroot
+          Copy-Item -Recurse -Force ./frontend/dist/frontend/browser/* ./backend/Hekutenantcoreapp.Api/wwwroot/
+
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.x'
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build ./backend --configuration Release
+
+      - name: Test with dotnet
+        run: dotnet test ./backend --configuration Release --no-build
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        run: dotnet publish ./backend/Hekutenantcoreapp.Api -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
       - name: Upload artifact for deployment job
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
@@ -38,6 +65,7 @@ jobs:
   deploy:
     runs-on: windows-latest
     needs: build
+    if: github.event_name != 'pull_request'
     permissions:
       id-token: write #This is required for requesting the JWT
       contents: read #This is required for actions/checkout
@@ -47,7 +75,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -62,4 +90,3 @@ jobs:
           app-name: 'hekutenantcoreapp'
           slot-name: 'Production'
           package: .
-          
