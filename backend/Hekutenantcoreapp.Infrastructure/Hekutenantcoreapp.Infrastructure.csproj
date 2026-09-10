@@ -6,6 +6,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Gzipped dr5hn geography CSVs, read by GeographySeeder at startup. -->
+    <None Include="Resources\Geography\*.csv.gz" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.75.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.11" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.9" />

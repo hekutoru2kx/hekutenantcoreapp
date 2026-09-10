@@ -171,6 +171,10 @@ using (var scope = app.Services.CreateScope())
     // App-wide settings singleton row (require-email-confirmation off by default).
     await AppSettingsSeeder.SeedAsync(db);
 
+    // Bulk-load reference geography (countries/states/cities) from the shipped CSVs on a
+    // fresh database. No-ops once each table is populated.
+    await GeographySeeder.SeedAsync(db);
+
     // SuperAdmin: global, platform-wide role (manages tenants themselves, role definitions,
     // system-wide user administration). Always has every registered permission, so it can
     // never lock itself out of a module after that module switches from role to policy checks.
