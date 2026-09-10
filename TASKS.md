@@ -6,7 +6,7 @@ family (ludemia, hekucoreapp, hekutenantcoreapp, gestamind): **Pending** = queue
 
 ## Pending
 
-_Nothing pending._
+- [ ] **Auto-create the bootstrap admin on a fresh/empty database** — family-wide change, primary tracking in `hekucoreapp/TASKS.md`. Today a fresh DB needs the admin to self-register and then an app restart to be promoted (here: → `SuperAdmin` + default-tenant membership + tenant-scoped `Admin`); the `Program.cs` startup block only ever grants roles to an already-existing user, never creates one. Proposal: when `BootstrapAdminEmail` is set **and `AspNetUsers` is empty**, have the startup scope create the user (`EmailConfirmed = true`, `MustChangePassword = true`; password from a new optional `BootstrapAdminPassword` key, else a once-logged random) *before* the existing promotion + default-tenant wiring runs. Context: `d--hekucoreapp` memory `project_core_db_recreation_2026-09`.
 
 ## Deferred — intentional, revisit on trigger
 
