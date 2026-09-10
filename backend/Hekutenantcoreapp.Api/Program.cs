@@ -219,10 +219,50 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
+    var bootstrapEmail = builder.Configuration["BootstrapAdminEmail"];
+
+    // First run against an empty database: create the bootstrap admin account so there is
+    // a first way in. Guarded on AspNetUsers being *entirely empty* — never merely "no
+    // active SuperAdmin" — so it can never fire on an established install. The break-glass
+    // and default-tenant blocks below then promote this user (SuperAdmin + default-tenant
+    // membership + tenant-scoped Admin) in the same startup pass.
+    if (!string.IsNullOrEmpty(bootstrapEmail) && !await userManager.Users.AnyAsync())
+    {
+        var configuredPassword = builder.Configuration["BootstrapAdminPassword"];
+        var password = string.IsNullOrEmpty(configuredPassword) ? GenerateBootstrapPassword() : configuredPassword;
+
+        var createdUser = new ApplicationUser
+        {
+            Email = bootstrapEmail,
+            UserName = bootstrapEmail,
+            EmailConfirmed = true,
+            MustChangePassword = true,
+            IsActive = true
+        };
+
+        var createResult = await userManager.CreateAsync(createdUser, password);
+        if (createResult.Succeeded)
+        {
+            if (string.IsNullOrEmpty(configuredPassword))
+                app.Logger.LogWarning(
+                    "Created bootstrap admin {Email} on the empty database. Temporary password: {Password} — sign in and change it now (this is logged only once).",
+                    bootstrapEmail, password);
+            else
+                app.Logger.LogWarning(
+                    "Created bootstrap admin {Email} on the empty database using the configured BootstrapAdminPassword — sign in and change it now.",
+                    bootstrapEmail);
+        }
+        else
+        {
+            app.Logger.LogWarning(
+                "Could not create bootstrap admin {Email}: {Errors}",
+                bootstrapEmail, string.Join(", ", createResult.Errors.Select(e => e.Description)));
+        }
+    }
+
     // Break-glass recovery: if SuperAdmin has no members (e.g. it was just created above,
     // or the last one was removed), restore a known bootstrap admin so the app can never
     // become unmanageable.
-    var bootstrapEmail = builder.Configuration["BootstrapAdminEmail"];
     ApplicationUser? bootstrapUser = string.IsNullOrEmpty(bootstrapEmail) ? null : await userManager.FindByEmailAsync(bootstrapEmail);
 
     if (superAdminRole != null && bootstrapUser != null)
@@ -278,3 +318,12 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+// Random password for a generated bootstrap admin: 20 chars from a CSPRNG over an
+// unambiguous alphabet, plus one of each required class so it always clears the
+// default Identity complexity rules. Only used when BootstrapAdminPassword is unset.
+static string GenerateBootstrapPassword()
+{
+    const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    return System.Security.Cryptography.RandomNumberGenerator.GetString(alphabet, 20) + "Aa1!";
+}
