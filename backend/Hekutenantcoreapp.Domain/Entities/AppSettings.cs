@@ -16,4 +16,19 @@ public class AppSettings : AuditableEntity
     // confirmed and there is no gate. AuthService reads this at registration and login.
     [Column("require_email_confirmation")]
     public bool RequireEmailConfirmation { get; set; }
+
+    // Admin-tunable content/upload limits, read by ContentService on every upload — kept here
+    // (not appsettings.json) so an admin can change them without a redeploy. appsettings.json's
+    // ContentStorage:HardMaxBytes is the absolute ceiling these can't exceed.
+    [Column("content_max_bytes")]
+    public long ContentMaxBytes { get; set; } = 5 * 1024 * 1024;
+
+    [Column("content_allowed_content_types")]
+    public string ContentAllowedContentTypes { get; set; } = "image/jpeg,image/png,image/webp";
+
+    [Column("content_max_image_dimension")]
+    public int ContentMaxImageDimension { get; set; } = 2048;
+
+    [Column("content_avatar_max_dimension")]
+    public int ContentAvatarMaxDimension { get; set; } = 512;
 }

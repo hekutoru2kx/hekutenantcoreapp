@@ -24,7 +24,14 @@ public class AppSettingsController : ControllerBase
     public async Task<IActionResult> GetSettings()
     {
         var result = await _service.GetSettingsAsync();
-        return Ok(new AppSettingsDto { RequireEmailConfirmation = result.RequireEmailConfirmation });
+        return Ok(new AppSettingsDto
+        {
+            RequireEmailConfirmation = result.RequireEmailConfirmation,
+            ContentMaxBytes = result.ContentMaxBytes,
+            ContentAllowedContentTypes = result.ContentAllowedContentTypes,
+            ContentMaxImageDimension = result.ContentMaxImageDimension,
+            ContentAvatarMaxDimension = result.ContentAvatarMaxDimension
+        });
     }
 
     [HttpPut]
@@ -35,7 +42,11 @@ public class AppSettingsController : ControllerBase
         {
             await _service.UpdateSettingsAsync(new UpdateAppSettingsRequest
             {
-                RequireEmailConfirmation = dto.RequireEmailConfirmation
+                RequireEmailConfirmation = dto.RequireEmailConfirmation,
+                ContentMaxBytes = dto.ContentMaxBytes,
+                ContentAllowedContentTypes = dto.ContentAllowedContentTypes,
+                ContentMaxImageDimension = dto.ContentMaxImageDimension,
+                ContentAvatarMaxDimension = dto.ContentAvatarMaxDimension
             });
             return Ok();
         }

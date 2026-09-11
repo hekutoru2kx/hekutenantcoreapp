@@ -4,9 +4,11 @@ import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { AppSettingsService } from '../../../services/app-settings';
+import { AppSettings, AppSettingsService } from '../../../services/app-settings';
 
 @Component({
   selector: 'app-app-settings',
@@ -16,6 +18,8 @@ import { AppSettingsService } from '../../../services/app-settings';
     MatSlideToggleModule,
     MatButtonModule,
     MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
     MatProgressBarModule,
     TranslocoModule
   ],
@@ -33,7 +37,11 @@ export class AppSettingsPage implements OnInit {
   successMessage = signal<string | null>(null);
 
   form = this.fb.group({
-    requireEmailConfirmation: [false]
+    requireEmailConfirmation: [false],
+    contentMaxBytes: [5 * 1024 * 1024],
+    contentAllowedContentTypes: ['image/jpeg,image/png,image/webp'],
+    contentMaxImageDimension: [2048],
+    contentAvatarMaxDimension: [512]
   });
 
   ngOnInit(): void {
@@ -44,7 +52,7 @@ export class AppSettingsPage implements OnInit {
     this.loading.set(true);
     this.service.getSettings().subscribe({
       next: (data) => {
-        this.form.patchValue({ requireEmailConfirmation: data.requireEmailConfirmation });
+        this.form.patchValue(data);
         this.loading.set(false);
       },
       error: (err) => {
@@ -59,7 +67,7 @@ export class AppSettingsPage implements OnInit {
     this.errorMessage.set(null);
     this.successMessage.set(null);
 
-    this.service.updateSettings(this.form.value as { requireEmailConfirmation: boolean }).subscribe({
+    this.service.updateSettings(this.form.value as AppSettings).subscribe({
       next: () => {
         this.saving.set(false);
         this.successMessage.set(this.transloco.translate('admin.appSettings.saveSuccess'));

@@ -16,6 +16,7 @@ import { Auth, TenantSummary } from '../../services/auth';
 import { Theme } from '../../services/theme';
 import { environment } from '../../../environments/environment';
 import { PersonForm, PersonFormData } from '../../components/person-form/person-form';
+import { AvatarUpload } from '../../components/avatar-upload/avatar-upload';
 
 export interface UserProfile {
   id: string;
@@ -29,6 +30,7 @@ export interface UserProfile {
 
 export interface PersonData {
   id?: number;
+  profilePictureContentId?: number | null;
   firstName?: string;
   lastName?: string;
   birthday?: string;
@@ -61,7 +63,8 @@ export interface PersonData {
     MatProgressBarModule,
     TranslocoModule,
     RouterLink,
-    PersonForm
+    PersonForm,
+    AvatarUpload
   ],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
@@ -81,6 +84,7 @@ export class Profile implements OnInit {
   loadingPerson = signal(false);
   personFormData = signal<PersonFormData | null>(null);
   availableTenants = signal<TenantSummary[]>([]);
+  profilePictureContentId = signal<number | null>(null);
 
   availableLanguages = [
     { code: 'es', label: 'Español' },
@@ -125,6 +129,7 @@ export class Profile implements OnInit {
     this.http.get<PersonData>(`${environment.apiUrl}/user/person`).subscribe({
       next: (person) => {
         if (person) {
+          this.profilePictureContentId.set(person.profilePictureContentId ?? null);
           this.personFormData.set({
             firstName: person.firstName || '',
             lastName: person.lastName || '',
@@ -193,4 +198,11 @@ export class Profile implements OnInit {
     });
   }
 
+  onPictureUploaded(contentId: number): void {
+    this.profilePictureContentId.set(contentId);
+  }
+
+  onPictureRemoved(): void {
+    this.profilePictureContentId.set(null);
+  }
 }

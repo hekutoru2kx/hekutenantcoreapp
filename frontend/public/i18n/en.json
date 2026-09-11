@@ -151,6 +151,12 @@
       "hint": "App-wide settings that apply to every user.",
       "requireEmailConfirmation": "Require email confirmation on registration",
       "requireEmailConfirmationHint": "When on, new users must click a link sent to their email address before they can sign in. Existing accounts are unaffected.",
+      "contentSection": "Content uploads",
+      "contentSectionHint": "Limits applied to every uploaded file (e.g. profile pictures). Changes apply immediately, no restart needed.",
+      "contentMaxBytes": "Max file size (bytes)",
+      "contentAllowedContentTypes": "Allowed content types (comma-separated)",
+      "contentMaxImageDimension": "Max image dimension (px)",
+      "contentAvatarMaxDimension": "Max avatar dimension (px)",
       "save": "Save",
       "saveSuccess": "Settings saved."
     },
@@ -203,6 +209,13 @@
       "title": "Roles",
       "hint": "These are the roles available across the system. Ask a SuperAdmin to create or adjust one if you need a different permission set — from here you can review what each role grants and assign it to your employees."
     }
+  },
+  "avatarUpload": {
+    "change": "Change photo",
+    "remove": "Remove",
+    "confirmRemove": "Remove your profile picture?",
+    "uploadError": "Failed to upload the picture",
+    "removeError": "Failed to remove the picture"
   },
   "profile": {
     "title": "My profile",

@@ -27,6 +27,29 @@
           <p class="hint">{{ 'admin.appSettings.requireEmailConfirmationHint' | transloco }}</p>
         </div>
 
+        <h3>{{ 'admin.appSettings.contentSection' | transloco }}</h3>
+        <p class="hint">{{ 'admin.appSettings.contentSectionHint' | transloco }}</p>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'admin.appSettings.contentMaxBytes' | transloco }}</mat-label>
+          <input matInput type="number" formControlName="contentMaxBytes">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'admin.appSettings.contentAllowedContentTypes' | transloco }}</mat-label>
+          <input matInput formControlName="contentAllowedContentTypes">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'admin.appSettings.contentMaxImageDimension' | transloco }}</mat-label>
+          <input matInput type="number" formControlName="contentMaxImageDimension">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'admin.appSettings.contentAvatarMaxDimension' | transloco }}</mat-label>
+          <input matInput type="number" formControlName="contentAvatarMaxDimension">
+        </mat-form-field>
+
         <div class="form-actions">
           <button mat-flat-button type="submit" [disabled]="saving()">
             {{ 'admin.appSettings.save' | transloco }}

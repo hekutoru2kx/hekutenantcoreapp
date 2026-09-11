@@ -178,4 +178,19 @@
   <data name="AppSettingsNotFound" xml:space="preserve">
     <value>La configuración de la aplicación no ha sido inicializada.</value>
   </data>
+  <data name="ContentNotFound" xml:space="preserve">
+    <value>Elemento de contenido no encontrado</value>
+  </data>
+  <data name="ContentHasNoFile" xml:space="preserve">
+    <value>Este elemento de contenido no tiene un archivo</value>
+  </data>
+  <data name="ContentFileEmpty" xml:space="preserve">
+    <value>El archivo subido está vacío</value>
+  </data>
+  <data name="ContentFileTooLarge" xml:space="preserve">
+    <value>El archivo subido es demasiado grande</value>
+  </data>
+  <data name="ContentFileTypeNotAllowed" xml:space="preserve">
+    <value>Este tipo de archivo no está permitido</value>
+  </data>
 </root>

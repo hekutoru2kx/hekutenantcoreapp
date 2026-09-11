@@ -33,6 +33,11 @@ public class HekutenantcoreappDbContext : IdentityDbContext<ApplicationUser>
     // Generic translations for free-text field values on any entity — see LocalizedText.
     public DbSet<LocalizedText> LocalizedTexts => Set<LocalizedText>();
 
+    // Generic, polymorphic content/attachments (see ContentItem) and the blob metadata they
+    // point at (see StoredFile). Both are ITenantScoped.
+    public DbSet<ContentItem> ContentItems => Set<ContentItem>();
+    public DbSet<StoredFile> StoredFiles => Set<StoredFile>();
+
     // Geographic reference data: Countries States Cities Database
     // https://github.com/dr5hn/countries-states-cities-database | ODbL v1.0
     public DbSet<Country> Countries => Set<Country>();
@@ -187,6 +192,25 @@ public class HekutenantcoreappDbContext : IdentityDbContext<ApplicationUser>
             entry.Entity.TenantId = CurrentTenantId;
         }
 
+        // New tenants get an opaque blob-storage-partition slug automatically (see
+        // Tenant.StoragePrefix / TenantContentPartitionResolver) — covers every construction
+        // site (admin-created, the startup default tenant, tests) with no per-call-site wiring.
+        foreach (var entry in ChangeTracker.Entries<Tenant>())
+        {
+            if (entry.State == EntityState.Added && string.IsNullOrEmpty(entry.Entity.StoragePrefix))
+                entry.Entity.StoragePrefix = GenerateStoragePrefix();
+        }
+
         return base.SaveChangesAsync(cancellationToken);
+    }
+
+    // Short, lowercase, unambiguous alphabet — this is a URL/blob-path segment, not something a
+    // person reads or types, so entropy density matters more than eyeballability. 12 chars over
+    // 33 symbols is effectively collision-free at any realistic tenant count; the unique index
+    // on StoragePrefix is the backstop, not a retry loop.
+    private static string GenerateStoragePrefix()
+    {
+        const string alphabet = "abcdefghijkmnpqrstuvwxyz23456789";
+        return System.Security.Cryptography.RandomNumberGenerator.GetString(alphabet, 12);
     }
 }

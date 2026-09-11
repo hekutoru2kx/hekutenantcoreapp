@@ -24,6 +24,9 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
             .HasForeignKey(t => t.CityId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Property(t => t.StoragePrefix).HasMaxLength(16);
+        builder.HasIndex(t => t.StoragePrefix).IsUnique();
+
         builder.Property(t => t.TenantType).HasConversion<string>();
         builder.HasOne<EnumLookup<TenantType>>()
             .WithMany()

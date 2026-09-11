@@ -40,6 +40,15 @@ public class Tenant : AuditableEntity
     [Column("attachment_retention_days")]
     public int? AttachmentRetentionDays { get; set; }
 
+    // Opaque per-tenant slug used to partition blob storage (see TenantContentPartitionResolver)
+    // — not this tenant's int Id, so blob paths/URLs don't expose ids or let anyone enumerate
+    // tenants by counting. Generated once, automatically, in
+    // HekutenantcoreappDbContext.SaveChangesAsync whenever a new Tenant is inserted (covers
+    // every construction site — admin-created, the startup default tenant, tests — with no
+    // per-call-site wiring). Immutable after that.
+    [Column("storage_prefix")]
+    public string StoragePrefix { get; set; } = string.Empty;
+
     public Country? Country { get; set; }
     public State? State { get; set; }
     public City? City { get; set; }

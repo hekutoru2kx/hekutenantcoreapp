@@ -1,0 +1,30 @@
+<div class="avatar-upload">
+  <div class="avatar-preview">
+    @if (displayUrl()) {
+      <img [src]="displayUrl()" alt="" />
+    } @else {
+      <mat-icon class="placeholder">account_circle</mat-icon>
+    }
+    @if (uploading()) {
+      <mat-spinner diameter="28" class="spinner"></mat-spinner>
+    }
+  </div>
+
+  <div class="avatar-actions">
+    <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="uploading()">
+      <mat-icon>photo_camera</mat-icon>
+      {{ 'avatarUpload.change' | transloco }}
+    </button>
+    @if (contentId()) {
+      <button mat-stroked-button type="button" (click)="onRemove()" [disabled]="uploading()">
+        <mat-icon>delete</mat-icon>
+        {{ 'avatarUpload.remove' | transloco }}
+      </button>
+    }
+    <input #fileInput type="file" accept="image/*" hidden (change)="onFileSelected($event)" />
+  </div>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+</div>

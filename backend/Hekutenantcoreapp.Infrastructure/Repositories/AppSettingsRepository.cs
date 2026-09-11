@@ -27,7 +27,11 @@ public class AppSettingsRepository : IAppSettingsRepository
 
         return new AppSettingsResult
         {
-            RequireEmailConfirmation = settings.RequireEmailConfirmation
+            RequireEmailConfirmation = settings.RequireEmailConfirmation,
+            ContentMaxBytes = settings.ContentMaxBytes,
+            ContentAllowedContentTypes = settings.ContentAllowedContentTypes,
+            ContentMaxImageDimension = settings.ContentMaxImageDimension,
+            ContentAvatarMaxDimension = settings.ContentAvatarMaxDimension
         };
     }
 
@@ -37,6 +41,10 @@ public class AppSettingsRepository : IAppSettingsRepository
             ?? throw new Exception(_localizer["AppSettingsNotFound"]);
 
         settings.RequireEmailConfirmation = request.RequireEmailConfirmation;
+        settings.ContentMaxBytes = request.ContentMaxBytes;
+        settings.ContentAllowedContentTypes = request.ContentAllowedContentTypes;
+        settings.ContentMaxImageDimension = request.ContentMaxImageDimension;
+        settings.ContentAvatarMaxDimension = request.ContentAvatarMaxDimension;
 
         await _context.SaveChangesAsync();
     }

@@ -3,6 +3,7 @@ using System;
 using Hekutenantcoreapp.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Hekutenantcoreapp.Infrastructure.Migrations
 {
     [DbContext(typeof(HekutenantcoreappDbContext))]
-    partial class HekutenantcoreappDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260911055544_AddContentItems")]
+    partial class AddContentItems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

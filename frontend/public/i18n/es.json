@@ -151,6 +151,12 @@
       "hint": "Configuración global que aplica a todos los usuarios.",
       "requireEmailConfirmation": "Requerir confirmación de correo al registrarse",
       "requireEmailConfirmationHint": "Cuando está activado, los usuarios nuevos deben hacer clic en un enlace enviado a su correo electrónico antes de poder iniciar sesión. Las cuentas existentes no se ven afectadas.",
+      "contentSection": "Archivos subidos",
+      "contentSectionHint": "Límites aplicados a todo archivo subido (por ejemplo, fotos de perfil). Los cambios aplican de inmediato, sin reiniciar.",
+      "contentMaxBytes": "Tamaño máximo (bytes)",
+      "contentAllowedContentTypes": "Tipos de contenido permitidos (separados por coma)",
+      "contentMaxImageDimension": "Dimensión máxima de imagen (px)",
+      "contentAvatarMaxDimension": "Dimensión máxima de avatar (px)",
       "save": "Guardar",
       "saveSuccess": "Configuración guardada."
     },
@@ -203,6 +209,13 @@
       "title": "Roles",
       "hint": "Estos son los roles disponibles en todo el sistema. Si necesitas un conjunto de permisos distinto, pide a un SuperAdmin que cree o ajuste uno; desde aquí puedes revisar qué otorga cada rol y asignarlo a tus empleados."
     }
+  },
+  "avatarUpload": {
+    "change": "Cambiar foto",
+    "remove": "Quitar",
+    "confirmRemove": "¿Quitar tu foto de perfil?",
+    "uploadError": "No se pudo subir la foto",
+    "removeError": "No se pudo quitar la foto"
   },
   "profile": {
     "title": "Mi perfil",

@@ -3,12 +3,18 @@
   <!-- Account Preferences -->
   <mat-card>
     <mat-card-header>
-      <mat-icon mat-card-avatar>account_circle</mat-icon>
       <mat-card-title>{{ 'profile.title' | transloco }}</mat-card-title>
       <mat-card-subtitle>{{ auth.currentUser()?.email }}</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
+      <app-avatar-upload
+        [contentId]="profilePictureContentId()"
+        path="/user/person/profile-picture"
+        (uploaded)="onPictureUploaded($event)"
+        (removed)="onPictureRemoved()">
+      </app-avatar-upload>
+
       @if (errorMessage()) {
         <p class="error">{{ errorMessage() }}</p>
       }

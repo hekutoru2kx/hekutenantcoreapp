@@ -11,6 +11,8 @@ using System.Text;
 using System.Security.Claims;
 using Hekutenantcoreapp.Infrastructure.Email;
 using Hekutenantcoreapp.Infrastructure.Repositories;
+using Hekutenantcoreapp.Infrastructure.Content;
+using Hekutenantcoreapp.Api.ContentAccess;
 using Hekutenantcoreapp.Domain.Enums;
 using Hekutenantcoreapp.Domain.Enums.Permissions;
 using Hekutenantcoreapp.Domain.Catalogs;
@@ -98,6 +100,20 @@ builder.Services.AddScoped<IMultiTenantSettingsRepository, MultiTenantSettingsRe
 //App-wide admin settings (singleton settings row) — e.g. require-email-confirmation
 builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
 builder.Services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
+
+// Content / attachments — generic polymorphic layer (ContentItem/StoredFile are ITenantScoped,
+// so tenant isolation is automatic). Provider defaults to LocalDisk so a fresh clone works with
+// no Azure account; set ContentStorage:Provider = "AzureBlob" + the connection string/container
+// to use a real account. TenantContentPartitionResolver resolves the caller's current tenant to
+// its Tenant.StoragePrefix — the only DI difference from hekucoreapp/ludemia's "global" stub.
+builder.Services.AddScoped<IContentService, ContentService>();
+builder.Services.AddScoped<IContentRepository, ContentRepository>();
+builder.Services.AddScoped<IContentPartitionResolver, TenantContentPartitionResolver>();
+builder.Services.AddScoped<IContentAccessPolicy, PersonContentAccessPolicy>();
+if (string.Equals(builder.Configuration["ContentStorage:Provider"], "AzureBlob", StringComparison.OrdinalIgnoreCase))
+    builder.Services.AddScoped<IContentStorage, AzureBlobContentStorage>();
+else
+    builder.Services.AddScoped<IContentStorage, LocalDiskContentStorage>();
 //Export safety cap (shared by every repository's unpaged GetAllXAsync) — null/<=0 is unlimited
 builder.Services.AddSingleton(new ExportSettings(builder.Configuration.GetValue<int?>("ExportMaxRows")));
 

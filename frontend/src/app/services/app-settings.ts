@@ -5,6 +5,10 @@ import { environment } from '../../environments/environment';
 
 export interface AppSettings {
   requireEmailConfirmation: boolean;
+  contentMaxBytes: number;
+  contentAllowedContentTypes: string;
+  contentMaxImageDimension: number;
+  contentAvatarMaxDimension: number;
 }
 
 @Service()

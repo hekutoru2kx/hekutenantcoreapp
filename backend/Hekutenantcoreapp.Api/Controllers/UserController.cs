@@ -1,8 +1,13 @@
 using Hekutenantcoreapp.Application.DTOs;
 using Hekutenantcoreapp.Application.Interfaces;
+using Hekutenantcoreapp.Application.Resources;
+using Hekutenantcoreapp.Domain.Constants;
 using Hekutenantcoreapp.Domain.Enums.Permissions;
+using Hekutenantcoreapp.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using System.Security.Claims;
 using Hekutenantcoreapp.Domain.Models;
 
@@ -14,11 +19,19 @@ public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly IAuthorizationService _authorizationService;
+    private readonly IContentService _contentService;
+    private readonly IStringLocalizer<Messages> _localizer;
 
-    public UserController(IUserService userService, IAuthorizationService authorizationService)
+    public UserController(
+        IUserService userService,
+        IAuthorizationService authorizationService,
+        IContentService contentService,
+        IStringLocalizer<Messages> localizer)
     {
         _userService = userService;
         _authorizationService = authorizationService;
+        _contentService = contentService;
+        _localizer = localizer;
     }
 
     [HttpPut("language")]
@@ -106,6 +119,8 @@ public class UserController : ControllerBase
         var person = await _userService.GetPersonAsync(userId);
         if (person == null) return Ok(null);
 
+        var profilePicture = await _contentService.GetSlotAsync(ContentOwnerTypes.Person, person.Id, ContentSlots.ProfilePicture);
+
         return Ok(new PersonDto
         {
             Id = person.Id,
@@ -123,8 +138,50 @@ public class UserController : ControllerBase
             AlternativePhone = person.AlternativePhone,
             CountryId = person.CountryId,
             StateId = person.StateId,
-            CityId = person.CityId
+            CityId = person.CityId,
+            ProfilePictureContentId = profilePicture?.Id
         });
+    }
+
+    // Self-service only — an admin-side equivalent on PersonController would delegate to the
+    // same IContentService.UploadToSlotAsync/DeleteSlotAsync with PersonsPermission.Update
+    // instead of this "it's my own person record" check; not wired yet.
+    [HttpPut("person/profile-picture")]
+    [Authorize]
+    [RequestSizeLimit(10 * 1024 * 1024)]
+    public async Task<IActionResult> UploadProfilePicture(IFormFile file)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var person = await _userService.GetPersonAsync(userId);
+        if (person == null) return BadRequest(_localizer["PersonNotFound"].Value);
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var result = await _contentService.UploadToSlotAsync(
+                ContentOwnerTypes.Person, person.Id, ContentSlots.ProfilePicture, stream, file.FileName, file.ContentType);
+            return Ok(new { id = result.Id });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpDelete("person/profile-picture")]
+    [Authorize]
+    public async Task<IActionResult> DeleteProfilePicture()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var person = await _userService.GetPersonAsync(userId);
+        if (person == null) return BadRequest(_localizer["PersonNotFound"].Value);
+
+        await _contentService.DeleteSlotAsync(ContentOwnerTypes.Person, person.Id, ContentSlots.ProfilePicture);
+        return Ok();
     }
 
     [HttpGet("person/check-existing")]
