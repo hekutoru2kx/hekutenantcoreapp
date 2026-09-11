@@ -249,6 +249,7 @@
     "save": "Save",
     "name": "Name",
     "document": "Document",
+    "picture": "Picture",
     "firstName": "First Name",
     "lastName": "Last Name",
     "birthday": "Birthday",

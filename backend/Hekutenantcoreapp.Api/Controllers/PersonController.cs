@@ -1,4 +1,5 @@
 using Hekutenantcoreapp.Application.DTOs;
+using Hekutenantcoreapp.Domain.Constants;
 using Hekutenantcoreapp.Domain.Enums.Permissions;
 using Hekutenantcoreapp.Domain.Interfaces;
 using Hekutenantcoreapp.Domain.Models;
@@ -13,10 +14,12 @@ namespace Hekutenantcoreapp.Api.Controllers;
 public class PersonController : ControllerBase
 {
     private readonly IPersonService _personService;
+    private readonly IContentService _contentService;
 
-    public PersonController(IPersonService personService)
+    public PersonController(IPersonService personService, IContentService contentService)
     {
         _personService = personService;
+        _contentService = contentService;
     }
 
     [HttpGet]
@@ -38,9 +41,14 @@ public class PersonController : ControllerBase
             CountryId = countryId
         });
 
+        // One batch read for the whole page's profile pictures rather than one GetSlotAsync per
+        // row — this is the paginated-list shape GetSlotsForOwnersAsync exists for.
+        var pictures = await _contentService.GetSlotsForOwnersAsync(
+            ContentOwnerTypes.Person, result.Items.Select(p => p.Id).ToList(), ContentSlots.ProfilePicture);
+
         return Ok(new
         {
-            items = result.Items.Select(MapToDto),
+            items = result.Items.Select(p => MapToDto(p, pictures.GetValueOrDefault(p.Id)?.Id)),
             totalCount = result.TotalCount,
             page = result.Page,
             pageSize = result.PageSize
@@ -58,7 +66,9 @@ public class PersonController : ControllerBase
         try
         {
             var results = await _personService.GetAllPersonsAsync(search, sortBy, sortDirection, countryId);
-            return Ok(results.Select(MapToDto));
+            var pictures = await _contentService.GetSlotsForOwnersAsync(
+                ContentOwnerTypes.Person, results.Select(p => p.Id).ToList(), ContentSlots.ProfilePicture);
+            return Ok(results.Select(p => MapToDto(p, pictures.GetValueOrDefault(p.Id)?.Id)));
         }
         catch (Exception ex)
         {
@@ -71,7 +81,41 @@ public class PersonController : ControllerBase
     {
         var person = await _personService.GetPersonByIdAsync(id);
         if (person == null) return NotFound();
-        return Ok(MapToDto(person));
+
+        var picture = await _contentService.GetSlotAsync(ContentOwnerTypes.Person, id, ContentSlots.ProfilePicture);
+        return Ok(MapToDto(person, picture?.Id));
+    }
+
+    [HttpPut("{id}/profile-picture")]
+    [Authorize(Policy = nameof(PersonsPermission) + "." + nameof(PersonsPermission.Update))]
+    [RequestSizeLimit(10 * 1024 * 1024)]
+    public async Task<IActionResult> UploadProfilePicture(int id, IFormFile file)
+    {
+        var person = await _personService.GetPersonByIdAsync(id);
+        if (person == null) return NotFound();
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var result = await _contentService.UploadToSlotAsync(
+                ContentOwnerTypes.Person, id, ContentSlots.ProfilePicture, stream, file.FileName, file.ContentType);
+            return Ok(new { id = result.Id });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpDelete("{id}/profile-picture")]
+    [Authorize(Policy = nameof(PersonsPermission) + "." + nameof(PersonsPermission.Update))]
+    public async Task<IActionResult> DeleteProfilePicture(int id)
+    {
+        var person = await _personService.GetPersonByIdAsync(id);
+        if (person == null) return NotFound();
+
+        await _contentService.DeleteSlotAsync(ContentOwnerTypes.Person, id, ContentSlots.ProfilePicture);
+        return Ok();
     }
 
     [HttpPost]
@@ -164,7 +208,7 @@ public class PersonController : ControllerBase
         }
     }
 
-    private static PersonDto MapToDto(PersonResult person) => new()
+    private static PersonDto MapToDto(PersonResult person, int? profilePictureContentId = null) => new()
     {
         Id = person.Id,
         FirstName = person.FirstName,
@@ -186,7 +230,8 @@ public class PersonController : ControllerBase
         StateName = person.StateName,
         CityName = person.CityName,
         LinkedUserName = person.LinkedUserName,
-        MembershipStatus = person.MembershipStatus
+        MembershipStatus = person.MembershipStatus,
+        ProfilePictureContentId = profilePictureContentId
     };
 
     private static UpsertPersonRequest MapToRequest(UpsertPersonDto dto) => new()

@@ -15,6 +15,14 @@ public interface IContentService
     // (ownerType, ownerId, slot).
     Task<ContentItemResult?> GetSlotAsync(string ownerType, int ownerId, string slot);
 
+    // Batch counterpart of GetSlotAsync for paginated/list views (e.g. a staff report showing
+    // many people's pictures at once) — one round trip instead of N. Owners with no item in the
+    // slot are simply absent from the result rather than mapped to a null entry. There is no
+    // batch *upload*/delete counterpart: writes are always one owner at a time, so only the read
+    // side needs both shapes — callers pick single vs. batch based on whether they're rendering
+    // one owner or a page of them.
+    Task<IReadOnlyDictionary<int, ContentItemResult>> GetSlotsForOwnersAsync(string ownerType, IReadOnlyCollection<int> ownerIds, string slot);
+
     // "Collection" shape (Slot = null) — no consumer wired yet in this core.
     Task<IReadOnlyList<ContentItemResult>> GetForOwnerAsync(string ownerType, int ownerId, bool includeUnpublished = false, bool includeArchived = false);
 

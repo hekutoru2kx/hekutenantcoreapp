@@ -19,6 +19,8 @@ import { debounceTime, Subject } from 'rxjs';
 import { PersonForm, PersonFormData } from '../../../components/person-form/person-form';
 import { ColumnReorder } from '../../../components/column-reorder/column-reorder';
 import { DataTableController } from '../../../shared/data-table-controller';
+import { AvatarUpload } from '../../../components/avatar-upload/avatar-upload';
+import { ContentThumbnail } from '../../../components/content-thumbnail/content-thumbnail';
 
 export interface PersonItem {
   id: number;
@@ -42,6 +44,7 @@ export interface PersonItem {
   cityName?: string;
   linkedUserName?: string | null;
   membershipStatus?: string | null;
+  profilePictureContentId?: number | null;
 }
 
 export interface PagedPersonResult {
@@ -68,7 +71,9 @@ export interface PagedPersonResult {
     MatProgressBarModule,
     TranslocoModule,
     PersonForm,
-    ColumnReorder
+    ColumnReorder,
+    AvatarUpload,
+    ContentThumbnail
   ],
   templateUrl: './person-management.html',
   styleUrl: './person-management.scss',
@@ -90,6 +95,7 @@ export class PersonManagement implements OnInit {
     persistSort: true,
     onChange: () => this.loadPersons(),
     columns: [
+      { key: 'picture', header: () => this.transloco.translate('persons.picture'), exportValue: () => '' },
       { key: 'lastName', header: () => this.transloco.translate('persons.lastName'), sortable: true, exportValue: (p) => p.lastName },
       { key: 'firstName', header: () => this.transloco.translate('persons.firstName'), sortable: true, exportValue: (p) => p.firstName },
       { key: 'email', header: () => this.transloco.translate('persons.email'), sortable: true, exportValue: (p) => p.email || '' },
@@ -198,6 +204,18 @@ export class PersonManagement implements OnInit {
   onPersonCancelled(): void {
     this.showForm.set(false);
     this.editingPerson.set(null);
+  }
+
+  onPictureUploaded(contentId: number): void {
+    const editing = this.editingPerson();
+    if (editing) this.editingPerson.set({ ...editing, profilePictureContentId: contentId });
+    this.loadPersons();
+  }
+
+  onPictureRemoved(): void {
+    const editing = this.editingPerson();
+    if (editing) this.editingPerson.set({ ...editing, profilePictureContentId: null });
+    this.loadPersons();
   }
 
   toggleAccess(person: PersonItem): void {

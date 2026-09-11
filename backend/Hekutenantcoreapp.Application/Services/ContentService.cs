@@ -56,6 +56,15 @@ public class ContentService : IContentService
         return item == null ? null : MapToResult(item);
     }
 
+    public async Task<IReadOnlyDictionary<int, ContentItemResult>> GetSlotsForOwnersAsync(string ownerType, IReadOnlyCollection<int> ownerIds, string slot)
+    {
+        EnsureValidOwnerType(ownerType);
+        if (ownerIds.Count == 0) return new Dictionary<int, ContentItemResult>();
+
+        var items = await _repository.GetSlotsForOwnersAsync(ownerType, ownerIds, slot);
+        return items.ToDictionary(i => i.OwnerId, MapToResult);
+    }
+
     public async Task<IReadOnlyList<ContentItemResult>> GetForOwnerAsync(string ownerType, int ownerId, bool includeUnpublished = false, bool includeArchived = false)
     {
         EnsureValidOwnerType(ownerType);

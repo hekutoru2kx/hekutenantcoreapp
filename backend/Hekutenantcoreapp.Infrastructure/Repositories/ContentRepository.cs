@@ -26,6 +26,15 @@ public class ContentRepository : IContentRepository
         await _context.ContentItems.Include(c => c.StoredFile)
             .FirstOrDefaultAsync(c => c.OwnerType == ownerType && c.OwnerId == ownerId && c.Slot == slot);
 
+    public async Task<IReadOnlyList<ContentItem>> GetSlotsForOwnersAsync(string ownerType, IReadOnlyCollection<int> ownerIds, string slot)
+    {
+        if (ownerIds.Count == 0) return Array.Empty<ContentItem>();
+
+        return await _context.ContentItems.Include(c => c.StoredFile)
+            .Where(c => c.OwnerType == ownerType && c.Slot == slot && ownerIds.Contains(c.OwnerId))
+            .ToListAsync();
+    }
+
     public async Task<IReadOnlyList<ContentItem>> GetForOwnerAsync(string ownerType, int ownerId, bool includeUnpublished, bool includeArchived)
     {
         var query = _context.ContentItems.Include(c => c.StoredFile)

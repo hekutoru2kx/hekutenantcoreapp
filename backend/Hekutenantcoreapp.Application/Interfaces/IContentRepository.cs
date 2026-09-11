@@ -9,6 +9,8 @@ public interface IContentRepository
 
     Task<ContentItem?> GetSlotAsync(string ownerType, int ownerId, string slot);
 
+    Task<IReadOnlyList<ContentItem>> GetSlotsForOwnersAsync(string ownerType, IReadOnlyCollection<int> ownerIds, string slot);
+
     Task<IReadOnlyList<ContentItem>> GetForOwnerAsync(string ownerType, int ownerId, bool includeUnpublished, bool includeArchived);
 
     // Creates the item for (ownerType, ownerId, slot) if none exists, or replaces its file if
