@@ -21,6 +21,7 @@ import { ColumnReorder } from '../../../components/column-reorder/column-reorder
 import { DataTableController } from '../../../shared/data-table-controller';
 import { AvatarUpload } from '../../../components/avatar-upload/avatar-upload';
 import { ContentThumbnail } from '../../../components/content-thumbnail/content-thumbnail';
+import { toYmd } from '../../../shared/datetime-split';
 
 export interface PersonItem {
   id: number;
@@ -187,9 +188,10 @@ export class PersonManagement implements OnInit {
 
   onPersonSaved(data: PersonFormData): void {
     const editing = this.editingPerson();
+    const payload = { ...data, birthday: toYmd(data.birthday) };
     const request = editing
-      ? this.http.put(`${environment.apiUrl}/admin/organization/persons/${editing.id}`, data)
-      : this.http.post(`${environment.apiUrl}/admin/organization/persons`, data);
+      ? this.http.put(`${environment.apiUrl}/admin/organization/persons/${editing.id}`, payload)
+      : this.http.post(`${environment.apiUrl}/admin/organization/persons`, payload);
 
     request.subscribe({
       next: () => {

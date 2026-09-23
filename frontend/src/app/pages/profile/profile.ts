@@ -17,6 +17,7 @@ import { Theme } from '../../services/theme';
 import { environment } from '../../../environments/environment';
 import { PersonForm, PersonFormData } from '../../components/person-form/person-form';
 import { AvatarUpload } from '../../components/avatar-upload/avatar-upload';
+import { toYmd } from '../../shared/datetime-split';
 
 export interface UserProfile {
   id: string;
@@ -185,7 +186,8 @@ export class Profile implements OnInit {
   }
 
   onPersonSaved(data: PersonFormData): void {
-    this.http.put(`${environment.apiUrl}/user/person`, data).subscribe({
+    const payload = { ...data, birthday: toYmd(data.birthday) };
+    this.http.put(`${environment.apiUrl}/user/person`, payload).subscribe({
       next: () => {
         this.personSuccessMessage.set(this.transloco.translate('profile.updateSuccess'));
         this.personErrorMessage.set('');
