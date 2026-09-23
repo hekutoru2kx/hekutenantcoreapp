@@ -1,4 +1,6 @@
 using Hekutenantcoreapp.Application.DTOs;
+using Hekutenantcoreapp.Application.Interfaces;
+using Hekutenantcoreapp.Domain.Enums;
 using Hekutenantcoreapp.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -15,12 +17,14 @@ public class AuthController : ControllerBase
     private readonly IAuthService _authService;
     private readonly IMultiTenantSettingsService _multiTenantSettingsService;
     private readonly IConfiguration _configuration;
+    private readonly ICategoryLogger _categoryLogger;
 
-    public AuthController(IAuthService authService, IMultiTenantSettingsService multiTenantSettingsService, IConfiguration configuration)
+    public AuthController(IAuthService authService, IMultiTenantSettingsService multiTenantSettingsService, IConfiguration configuration, ICategoryLogger categoryLogger)
     {
         _authService = authService;
         _multiTenantSettingsService = multiTenantSettingsService;
         _configuration = configuration;
+        _categoryLogger = categoryLogger;
     }
 
     // [AllowAnonymous] pre-auth lookup for the Register page: whether it should show a tenant
@@ -54,6 +58,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(AuthController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -68,6 +73,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(AuthController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -82,6 +88,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(AuthController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -98,6 +105,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(AuthController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -114,6 +122,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(AuthController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -137,6 +146,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(AuthController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -160,6 +170,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(AuthController)}", ex);
             return BadRequest(ex.Message);
         }
     }

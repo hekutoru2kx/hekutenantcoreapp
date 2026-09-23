@@ -1,6 +1,7 @@
 using Hekutenantcoreapp.Domain.Entities;
 using Hekutenantcoreapp.Domain.Enums;
 using Hekutenantcoreapp.Infrastructure.Data;
+using Hekutenantcoreapp.Infrastructure.Logging;
 using Hekutenantcoreapp.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +28,7 @@ public class TenantMembershipRepositoryTests
             }
         };
 
-        return new HekutenantcoreappDbContext(options, accessor);
+        return new HekutenantcoreappDbContext(options, accessor, NullCategoryLogger.Instance);
     }
 
     [Fact]

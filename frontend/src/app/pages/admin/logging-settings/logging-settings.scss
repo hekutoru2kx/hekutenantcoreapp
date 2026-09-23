@@ -1,0 +1,60 @@
+.logging-settings {
+  padding: 24px;
+  max-width: 720px;
+}
+
+.header {
+  margin-bottom: 8px;
+}
+
+.hint {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--mat-sys-on-surface-variant, gray);
+}
+
+.form-card {
+  margin-bottom: 24px;
+}
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.category-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .category-name {
+    flex: 1;
+    font-weight: 500;
+  }
+
+  mat-form-field {
+    width: 200px;
+  }
+}
+
+.retention-field {
+  margin-top: 16px;
+  width: 200px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.error {
+  color: var(--mat-sys-error);
+  font-size: 13px;
+}
+
+.success {
+  color: green;
+  font-size: 13px;
+}

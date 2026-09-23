@@ -147,6 +147,9 @@
   <data name="MultiTenantSettingsNotFound" xml:space="preserve">
     <value>Configuración multi-tenant no encontrada</value>
   </data>
+  <data name="LoggingSettingsNotFound" xml:space="preserve">
+    <value>Configuración de registro no encontrada</value>
+  </data>
   <data name="DefaultTenantRequiredForFlag" xml:space="preserve">
     <value>Debe establecerse un tenant predeterminado antes de habilitar esta configuración</value>
   </data>

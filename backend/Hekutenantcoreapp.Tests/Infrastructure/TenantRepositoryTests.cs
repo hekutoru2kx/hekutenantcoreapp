@@ -3,6 +3,7 @@ using Hekutenantcoreapp.Domain.Entities;
 using Hekutenantcoreapp.Domain.Enums;
 using Hekutenantcoreapp.Domain.Models;
 using Hekutenantcoreapp.Infrastructure.Data;
+using Hekutenantcoreapp.Infrastructure.Logging;
 using Hekutenantcoreapp.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +34,7 @@ public class TenantRepositoryTests
             }
         };
 
-        return new HekutenantcoreappDbContext(options, accessor);
+        return new HekutenantcoreappDbContext(options, accessor, NullCategoryLogger.Instance);
     }
 
     private static TenantRepository CreateRepository(HekutenantcoreappDbContext context, int? exportMaxRows = null) =>

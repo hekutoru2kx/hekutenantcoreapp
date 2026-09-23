@@ -1,4 +1,6 @@
 using Hekutenantcoreapp.Application.DTOs;
+using Hekutenantcoreapp.Application.Interfaces;
+using Hekutenantcoreapp.Domain.Enums;
 using Hekutenantcoreapp.Domain.Enums.Permissions;
 using Hekutenantcoreapp.Domain.Interfaces;
 using Hekutenantcoreapp.Domain.Models;
@@ -13,10 +15,12 @@ namespace Hekutenantcoreapp.Api.Controllers;
 public class RoleManagementController : ControllerBase
 {
     private readonly IRoleManagementService _roleManagementService;
+    private readonly ICategoryLogger _categoryLogger;
 
-    public RoleManagementController(IRoleManagementService roleManagementService)
+    public RoleManagementController(IRoleManagementService roleManagementService, ICategoryLogger categoryLogger)
     {
         _roleManagementService = roleManagementService;
+        _categoryLogger = categoryLogger;
     }
 
     [HttpGet]
@@ -50,6 +54,7 @@ public class RoleManagementController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(RoleManagementController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -65,6 +70,7 @@ public class RoleManagementController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(RoleManagementController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -90,6 +96,7 @@ public class RoleManagementController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(RoleManagementController)}", ex);
             return BadRequest(ex.Message);
         }
     }

@@ -1,0 +1,105 @@
+<div class="system-logs">
+  <div class="header">
+    <h2>{{ 'admin.systemLogs.title' | transloco }}</h2>
+  </div>
+
+  <p class="hint">{{ 'admin.systemLogs.hint' | transloco }}</p>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  <form [formGroup]="filters" (ngSubmit)="applyFilters()" class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'admin.systemLogs.tenantId' | transloco }}</mat-label>
+      <input matInput type="number" formControlName="tenantId">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'admin.systemLogs.category' | transloco }}</mat-label>
+      <mat-select formControlName="category">
+        <mat-option [value]="null">{{ 'admin.systemLogs.allCategories' | transloco }}</mat-option>
+        @for (category of categories; track category) {
+          <mat-option [value]="category">{{ 'admin.loggingSettings.category_' + category | transloco }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'admin.systemLogs.level' | transloco }}</mat-label>
+      <mat-select formControlName="level">
+        <mat-option [value]="null">{{ 'admin.systemLogs.allLevels' | transloco }}</mat-option>
+        @for (level of levels; track level) {
+          <mat-option [value]="level">{{ 'admin.loggingSettings.level_' + level | transloco }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'admin.systemLogs.from' | transloco }}</mat-label>
+      <input matInput type="datetime-local" formControlName="from">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'admin.systemLogs.to' | transloco }}</mat-label>
+      <input matInput type="datetime-local" formControlName="to">
+    </mat-form-field>
+
+    <button mat-flat-button type="submit">{{ 'admin.systemLogs.filter' | transloco }}</button>
+  </form>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+
+  <table mat-table [dataSource]="items()" class="logs-table">
+    <ng-container matColumnDef="timestamp">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.systemLogs.timestamp' | transloco }}</th>
+      <td mat-cell *matCellDef="let row">{{ row.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="level">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.systemLogs.level' | transloco }}</th>
+      <td mat-cell *matCellDef="let row" [class]="'level-' + row.level">{{ row.level }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="category">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.systemLogs.category' | transloco }}</th>
+      <td mat-cell *matCellDef="let row">{{ row.category }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="message">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.systemLogs.message' | transloco }}</th>
+      <td mat-cell *matCellDef="let row">
+        <div>{{ row.message }}</div>
+        @if (row.exception) {
+          <mat-expansion-panel class="exception-panel">
+            <mat-expansion-panel-header>{{ 'admin.systemLogs.exception' | transloco }}</mat-expansion-panel-header>
+            <pre>{{ row.exception }}</pre>
+          </mat-expansion-panel>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="tenantId">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.systemLogs.tenantId' | transloco }}</th>
+      <td mat-cell *matCellDef="let row">{{ row.tenantId ?? '—' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="userId">
+      <th mat-header-cell *matHeaderCellDef>{{ 'admin.systemLogs.userId' | transloco }}</th>
+      <td mat-cell *matCellDef="let row">{{ row.userId ?? '—' }}</td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <mat-paginator
+    [length]="totalCount()"
+    [pageIndex]="pageIndex()"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="[25, 50, 100, 200]"
+    (page)="onPage($event)">
+  </mat-paginator>
+</div>

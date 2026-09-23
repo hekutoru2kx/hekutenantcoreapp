@@ -1,4 +1,6 @@
 using Hekutenantcoreapp.Application.DTOs;
+using Hekutenantcoreapp.Application.Interfaces;
+using Hekutenantcoreapp.Domain.Enums;
 using Hekutenantcoreapp.Domain.Enums.Permissions;
 using Hekutenantcoreapp.Domain.Interfaces;
 using Hekutenantcoreapp.Domain.Models;
@@ -13,10 +15,12 @@ namespace Hekutenantcoreapp.Api.Controllers;
 public class TenantController : ControllerBase
 {
     private readonly ITenantService _tenantService;
+    private readonly ICategoryLogger _categoryLogger;
 
-    public TenantController(ITenantService tenantService)
+    public TenantController(ITenantService tenantService, ICategoryLogger categoryLogger)
     {
         _tenantService = tenantService;
+        _categoryLogger = categoryLogger;
     }
 
     [HttpGet]
@@ -68,6 +72,7 @@ public class TenantController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(TenantController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -92,6 +97,7 @@ public class TenantController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(TenantController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -107,6 +113,7 @@ public class TenantController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(TenantController)}", ex);
             return BadRequest(ex.Message);
         }
     }

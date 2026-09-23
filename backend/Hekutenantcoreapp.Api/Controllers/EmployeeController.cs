@@ -1,4 +1,6 @@
 using Hekutenantcoreapp.Application.DTOs;
+using Hekutenantcoreapp.Application.Interfaces;
+using Hekutenantcoreapp.Domain.Enums;
 using Hekutenantcoreapp.Domain.Enums.Permissions;
 using Hekutenantcoreapp.Domain.Interfaces;
 using Hekutenantcoreapp.Domain.Models;
@@ -13,10 +15,12 @@ namespace Hekutenantcoreapp.Api.Controllers;
 public class EmployeeController : ControllerBase
 {
     private readonly IEmployeeService _employeeService;
+    private readonly ICategoryLogger _categoryLogger;
 
-    public EmployeeController(IEmployeeService employeeService)
+    public EmployeeController(IEmployeeService employeeService, ICategoryLogger categoryLogger)
     {
         _employeeService = employeeService;
+        _categoryLogger = categoryLogger;
     }
 
     [HttpGet("assignable-roles")]
@@ -67,6 +71,7 @@ public class EmployeeController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(EmployeeController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -100,6 +105,7 @@ public class EmployeeController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(EmployeeController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -120,6 +126,7 @@ public class EmployeeController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(EmployeeController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -149,6 +156,7 @@ public class EmployeeController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(EmployeeController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -171,6 +179,7 @@ public class EmployeeController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(EmployeeController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -186,6 +195,7 @@ public class EmployeeController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(EmployeeController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -201,6 +211,7 @@ public class EmployeeController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(EmployeeController)}", ex);
             return BadRequest(ex.Message);
         }
     }

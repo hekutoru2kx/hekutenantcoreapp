@@ -2,6 +2,7 @@ using Hekutenantcoreapp.Domain.Entities;
 using Hekutenantcoreapp.Domain.Models;
 using Hekutenantcoreapp.Infrastructure.Data;
 using Hekutenantcoreapp.Infrastructure.Identity;
+using Hekutenantcoreapp.Infrastructure.Logging;
 using Hekutenantcoreapp.Infrastructure.Repositories;
 using Hekutenantcoreapp.Application.Resources;
 using Microsoft.AspNetCore.Http;
@@ -33,7 +34,7 @@ public class EmployeeRepositoryTests
             }
         };
 
-        return new HekutenantcoreappDbContext(options, accessor);
+        return new HekutenantcoreappDbContext(options, accessor, NullCategoryLogger.Instance);
     }
 
     private static EmployeeRepository CreateRepository(HekutenantcoreappDbContext context, int? exportMaxRows = null)

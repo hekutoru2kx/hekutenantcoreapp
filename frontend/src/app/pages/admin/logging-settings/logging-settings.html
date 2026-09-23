@@ -1,0 +1,52 @@
+<div class="logging-settings">
+  <div class="header">
+    <h2>{{ 'admin.loggingSettings.title' | transloco }}</h2>
+  </div>
+
+  <p class="hint">{{ 'admin.loggingSettings.hint' | transloco }}</p>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  @if (successMessage()) {
+    <p class="success">{{ successMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+
+  <mat-card class="form-card">
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div formArrayName="categories" class="categories">
+          @for (group of categories.controls; track group; let i = $index) {
+            <div [formGroupName]="i" class="category-row">
+              <span class="category-name">{{ 'admin.loggingSettings.category_' + group.value.category | transloco }}</span>
+              <mat-form-field appearance="outline">
+                <mat-label>{{ 'admin.loggingSettings.minimumLevel' | transloco }}</mat-label>
+                <mat-select formControlName="minimumLevel">
+                  @for (level of levelsFor(group.value.category); track level) {
+                    <mat-option [value]="level">{{ 'admin.loggingSettings.level_' + level | transloco }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          }
+        </div>
+
+        <mat-form-field appearance="outline" class="retention-field">
+          <mat-label>{{ 'admin.loggingSettings.retentionDays' | transloco }}</mat-label>
+          <input matInput type="number" min="1" formControlName="retentionDays">
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button mat-flat-button type="submit" [disabled]="form.invalid || saving()">
+            {{ 'admin.loggingSettings.save' | transloco }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

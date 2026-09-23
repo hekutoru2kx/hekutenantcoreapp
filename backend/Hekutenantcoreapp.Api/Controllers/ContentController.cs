@@ -1,4 +1,5 @@
 using Hekutenantcoreapp.Application.Interfaces;
+using Hekutenantcoreapp.Domain.Enums;
 using Hekutenantcoreapp.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +17,13 @@ public class ContentController : ControllerBase
 {
     private readonly IContentService _contentService;
     private readonly IEnumerable<IContentAccessPolicy> _accessPolicies;
+    private readonly ICategoryLogger _categoryLogger;
 
-    public ContentController(IContentService contentService, IEnumerable<IContentAccessPolicy> accessPolicies)
+    public ContentController(IContentService contentService, IEnumerable<IContentAccessPolicy> accessPolicies, ICategoryLogger categoryLogger)
     {
         _contentService = contentService;
         _accessPolicies = accessPolicies;
+        _categoryLogger = categoryLogger;
     }
 
     [HttpGet("{id}/file")]
@@ -41,6 +44,7 @@ public class ContentController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(ContentController)}", ex);
             return NotFound(ex.Message);
         }
     }

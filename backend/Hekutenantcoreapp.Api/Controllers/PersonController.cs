@@ -1,5 +1,7 @@
 using Hekutenantcoreapp.Application.DTOs;
+using Hekutenantcoreapp.Application.Interfaces;
 using Hekutenantcoreapp.Domain.Constants;
+using Hekutenantcoreapp.Domain.Enums;
 using Hekutenantcoreapp.Domain.Enums.Permissions;
 using Hekutenantcoreapp.Domain.Interfaces;
 using Hekutenantcoreapp.Domain.Models;
@@ -15,11 +17,13 @@ public class PersonController : ControllerBase
 {
     private readonly IPersonService _personService;
     private readonly IContentService _contentService;
+    private readonly ICategoryLogger _categoryLogger;
 
-    public PersonController(IPersonService personService, IContentService contentService)
+    public PersonController(IPersonService personService, IContentService contentService, ICategoryLogger categoryLogger)
     {
         _personService = personService;
         _contentService = contentService;
+        _categoryLogger = categoryLogger;
     }
 
     [HttpGet]
@@ -72,6 +76,7 @@ public class PersonController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(PersonController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -103,6 +108,7 @@ public class PersonController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(PersonController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -129,6 +135,7 @@ public class PersonController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(PersonController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -144,6 +151,7 @@ public class PersonController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(PersonController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -159,6 +167,7 @@ public class PersonController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(PersonController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -174,6 +183,7 @@ public class PersonController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(PersonController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -189,6 +199,7 @@ public class PersonController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(PersonController)}", ex);
             return BadRequest(ex.Message);
         }
     }
@@ -204,6 +215,7 @@ public class PersonController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(PersonController)}", ex);
             return BadRequest(ex.Message);
         }
     }

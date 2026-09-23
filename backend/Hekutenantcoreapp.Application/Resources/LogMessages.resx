@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="EntityCreated" xml:space="preserve">
+    <value>{0} {1} created</value>
+  </data>
+  <data name="EntityUpdated" xml:space="preserve">
+    <value>{0} {1} updated</value>
+  </data>
+  <data name="EntityDeleted" xml:space="preserve">
+    <value>{0} {1} deleted</value>
+  </data>
+  <data name="AggregateItemsUpdated" xml:space="preserve">
+    <value>{0} {1} items updated</value>
+  </data>
+</root>

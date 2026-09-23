@@ -1,4 +1,6 @@
 using Hekutenantcoreapp.Application.DTOs;
+using Hekutenantcoreapp.Application.Interfaces;
+using Hekutenantcoreapp.Domain.Enums;
 using Hekutenantcoreapp.Domain.Enums.Permissions;
 using Hekutenantcoreapp.Domain.Interfaces;
 using Hekutenantcoreapp.Domain.Models;
@@ -13,10 +15,12 @@ namespace Hekutenantcoreapp.Api.Controllers;
 public class MultiTenantSettingsController : ControllerBase
 {
     private readonly IMultiTenantSettingsService _service;
+    private readonly ICategoryLogger _categoryLogger;
 
-    public MultiTenantSettingsController(IMultiTenantSettingsService service)
+    public MultiTenantSettingsController(IMultiTenantSettingsService service, ICategoryLogger categoryLogger)
     {
         _service = service;
+        _categoryLogger = categoryLogger;
     }
 
     [HttpGet]
@@ -38,6 +42,7 @@ public class MultiTenantSettingsController : ControllerBase
         }
         catch (Exception ex)
         {
+            _categoryLogger.LogError(LogCategory.Http, $"Unhandled exception in {nameof(MultiTenantSettingsController)}", ex);
             return BadRequest(ex.Message);
         }
     }

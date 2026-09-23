@@ -1,4 +1,5 @@
 using Hekutenantcoreapp.Infrastructure.Data;
+using Hekutenantcoreapp.Infrastructure.Logging;
 using Hekutenantcoreapp.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +25,7 @@ public class LocalizedTextRepositoryTests
             }
         };
 
-        return new HekutenantcoreappDbContext(options, accessor);
+        return new HekutenantcoreappDbContext(options, accessor, NullCategoryLogger.Instance);
     }
 
     [Fact]

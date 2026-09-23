@@ -2,6 +2,7 @@ using Hekutenantcoreapp.Domain.Entities;
 using Hekutenantcoreapp.Domain.Models;
 using Hekutenantcoreapp.Infrastructure.Data;
 using Hekutenantcoreapp.Infrastructure.Identity;
+using Hekutenantcoreapp.Infrastructure.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -29,7 +30,7 @@ public class UserTenantRoleRepositoryTests
             }
         };
 
-        return new HekutenantcoreappDbContext(options, accessor);
+        return new HekutenantcoreappDbContext(options, accessor, NullCategoryLogger.Instance);
     }
 
     // Backed by the same InMemory HekutenantcoreappDbContext (which already has Identity's Roles

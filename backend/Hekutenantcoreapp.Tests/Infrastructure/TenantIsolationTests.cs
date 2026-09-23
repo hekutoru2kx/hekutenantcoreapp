@@ -1,5 +1,6 @@
 using Hekutenantcoreapp.Domain.Entities;
 using Hekutenantcoreapp.Infrastructure.Data;
+using Hekutenantcoreapp.Infrastructure.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -28,7 +29,7 @@ public class TenantIsolationTests
             };
         }
 
-        return new HekutenantcoreappDbContext(options, accessor);
+        return new HekutenantcoreappDbContext(options, accessor, NullCategoryLogger.Instance);
     }
 
     [Fact]

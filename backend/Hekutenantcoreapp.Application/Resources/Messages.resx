@@ -147,6 +147,9 @@
 <data name="MultiTenantSettingsNotFound" xml:space="preserve">
   <value>Multi-tenant settings not found</value>
 </data>
+<data name="LoggingSettingsNotFound" xml:space="preserve">
+  <value>Logging settings not found</value>
+</data>
 <data name="DefaultTenantRequiredForFlag" xml:space="preserve">
   <value>A default tenant must be set before enabling this setting</value>
 </data>

@@ -17,6 +17,8 @@ import { EmployeeManagement } from './pages/admin/employee-management/employee-m
 import { TenantRoleManagement } from './pages/admin/tenant-role-management/tenant-role-management';
 import { EmployeeRoleAssignment } from './pages/admin/employee-role-assignment/employee-role-assignment';
 import { MultiTenantSettingsPage } from './pages/admin/multi-tenant-settings/multi-tenant-settings';
+import { LoggingSettingsPage } from './pages/admin/logging-settings/logging-settings';
+import { SystemLogsPage } from './pages/admin/system-logs/system-logs';
 import { AppSettingsPage } from './pages/admin/app-settings/app-settings';
 import { ConfirmEmail } from './pages/user/confirm-email/confirm-email';
 
@@ -34,6 +36,8 @@ export const routes: Routes = [
   // Platform (System)
   { path: 'system/platform/tenants', component: TenantManagement, canActivate: [authGuard, claimGuard('TenantsPermission', 'Read')] },
   { path: 'system/platform/multi-tenant-settings', component: MultiTenantSettingsPage, canActivate: [authGuard, claimGuard('MultiTenantSettingsPermission', 'Read')] },
+  { path: 'system/platform/logging-settings', component: LoggingSettingsPage, canActivate: [authGuard, claimGuard('LoggingSettingsPermission', 'Read')] },
+  { path: 'system/platform/logs', component: SystemLogsPage, canActivate: [authGuard, claimGuard('LoggingSettingsPermission', 'Read')] },
   { path: 'admin/settings', component: AppSettingsPage, canActivate: [authGuard, claimGuard('AppSettingsPermission', 'Read')] },
 
   // Identity (System + Tenant)

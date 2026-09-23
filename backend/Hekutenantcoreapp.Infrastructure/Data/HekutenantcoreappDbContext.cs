@@ -1,8 +1,10 @@
+using Hekutenantcoreapp.Application.Interfaces;
 using Hekutenantcoreapp.Domain.Common;
 using Hekutenantcoreapp.Domain.Entities;
 using Hekutenantcoreapp.Domain.Enums;
 using Hekutenantcoreapp.Domain.Catalogs;
 using Hekutenantcoreapp.Infrastructure.Identity;
+using Hekutenantcoreapp.Infrastructure.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +18,7 @@ namespace Hekutenantcoreapp.Infrastructure.Data;
 public class HekutenantcoreappDbContext : IdentityDbContext<ApplicationUser>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICategoryLogger _categoryLogger;
 
     public DbSet<Person> Persons => Set<Person>();
     public DbSet<DeletedAccount> DeletedAccounts => Set<DeletedAccount>();
@@ -26,6 +29,11 @@ public class HekutenantcoreappDbContext : IdentityDbContext<ApplicationUser>
 
     // Global platform config — singleton row, see MultiTenantSettings.
     public DbSet<MultiTenantSettings> MultiTenantSettings => Set<MultiTenantSettings>();
+
+    // Global platform config — six fixed rows (one per LogCategory) plus a singleton retention
+    // row, see LoggingCategorySettings/LoggingRetentionSettings.
+    public DbSet<LoggingCategorySettings> LoggingCategorySettings => Set<LoggingCategorySettings>();
+    public DbSet<LoggingRetentionSettings> LoggingRetentionSettings => Set<LoggingRetentionSettings>();
 
     // App-wide, admin-configurable settings — singleton row, see AppSettings.
     public DbSet<AppSettings> AppSettings => Set<AppSettings>();
@@ -51,10 +59,11 @@ public class HekutenantcoreappDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<EnumLookup<TenantMembershipStatus>> TenantMembershipStatusLookups => Set<EnumLookup<TenantMembershipStatus>>();
     public DbSet<EnumLookup<TenantType>> TenantTypeLookups => Set<EnumLookup<TenantType>>();
 
-    public HekutenantcoreappDbContext(DbContextOptions<HekutenantcoreappDbContext> options, IHttpContextAccessor httpContextAccessor)
+    public HekutenantcoreappDbContext(DbContextOptions<HekutenantcoreappDbContext> options, IHttpContextAccessor httpContextAccessor, ICategoryLogger categoryLogger)
         : base(options)
     {
         _httpContextAccessor = httpContextAccessor;
+        _categoryLogger = categoryLogger;
     }
 
     // Resolves to 0 (an impossible id) whenever there's no HttpContext or no tenant_id claim,
@@ -153,7 +162,7 @@ public class HekutenantcoreappDbContext : IdentityDbContext<ApplicationUser>
         return filter;
     }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var currentUserId = _httpContextAccessor.HttpContext?.User
             .FindFirstValue(ClaimTypes.NameIdentifier) ?? "system";
@@ -201,7 +210,20 @@ public class HekutenantcoreappDbContext : IdentityDbContext<ApplicationUser>
                 entry.Entity.StoragePrefix = GenerateStoragePrefix();
         }
 
-        return base.SaveChangesAsync(cancellationToken);
+        // Snapshot before the save — EntityState resets to Unchanged/Detached on success, so
+        // State must be read now; the entries themselves stay valid to read from afterward, which
+        // is when an Added row's real database-generated Id first becomes available.
+        var businessLogSnapshots = ChangeTracker.Entries<AuditableEntity>()
+            .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            .Select(e => new BusinessLogPlanner.EntrySnapshot(e, e.State, e.Entity.GetType().Name, e.Entity as IAggregateItem))
+            .ToList();
+
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        foreach (var line in BusinessLogPlanner.Plan(businessLogSnapshots))
+            _categoryLogger.Log(LogCategory.Business, LogLevel.Information, line);
+
+        return result;
     }
 
     // Short, lowercase, unambiguous alphabet — this is a URL/blob-path segment, not something a

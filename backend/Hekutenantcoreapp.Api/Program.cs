@@ -11,6 +11,7 @@ using System.Text;
 using System.Security.Claims;
 using Hekutenantcoreapp.Infrastructure.Email;
 using Hekutenantcoreapp.Infrastructure.Repositories;
+using Hekutenantcoreapp.Infrastructure.BackgroundServices;
 using Hekutenantcoreapp.Infrastructure.Content;
 using Hekutenantcoreapp.Api.ContentAccess;
 using Hekutenantcoreapp.Domain.Enums;
@@ -18,8 +19,50 @@ using Hekutenantcoreapp.Domain.Enums.Permissions;
 using Hekutenantcoreapp.Domain.Catalogs;
 using Hekutenantcoreapp.Domain.Entities;
 using Hekutenantcoreapp.Domain.Models;
+using Hekutenantcoreapp.Infrastructure.Logging;
+using Serilog;
+using Serilog.Events;
+
+// Bootstrap logger: active only while the host is being built, so a failure during configuration
+// (e.g. a bad connection string) is still captured somewhere. Replaced by the fully-configured
+// Serilog pipeline below once the DI container exists.
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Logging foundation — see Hekutenantcoreapp.Infrastructure/Logging. CategoryLevelSwitches is the
+// live, SuperAdmin-adjustable minimum level per LogCategory (Http/Database/Security/Integration/
+// Business/System); ICategoryLogger is what the rest of the app calls to emit a categorized line.
+// Gating happens inside CategoryLogger itself, before anything reaches Serilog's pipeline — so the
+// pipeline's own MinimumLevel below must stay permissive (Verbose) for categorized events to ever
+// have a chance; framework/library noise that never goes through ICategoryLogger is governed by
+// the Override rules instead.
+var categoryLevelSwitches = new CategoryLevelSwitches();
+builder.Services.AddSingleton(categoryLevelSwitches);
+builder.Services.AddSingleton<ICategoryLogger, CategoryLogger>();
+builder.Services.AddSingleton<RequestContextEnricher>();
+
+builder.Host.UseSerilog((context, services, loggerConfig) =>
+{
+    loggerConfig
+        .MinimumLevel.Verbose()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .MinimumLevel.Override("Hekutenantcoreapp", LogEventLevel.Information)
+        .Enrich.FromLogContext()
+        .Enrich.With(services.GetRequiredService<RequestContextEnricher>())
+        .Destructure.With<SensitiveDataDestructuringPolicy>()
+        .WriteTo.Console()
+        .WriteTo.File(
+            Path.Combine(AppContext.BaseDirectory, "Logs", "hekutenantcoreapp-.log"),
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 30)
+        // Primary, queryable, tenant-filterable sink — never the only sink (see file/console
+        // above): if Postgres itself is the thing that's down, those two still capture events.
+        .WriteTo.SystemLogPostgres(context.Configuration.GetConnectionString("DefaultConnection")!);
+});
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -46,8 +89,13 @@ var localizationOptions = new RequestLocalizationOptions()
 builder.Services.AddLocalization();
 
 // Database
-builder.Services.AddDbContext<HekutenantcoreappDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<HekutenantcoreappDbContext>((serviceProvider, options) =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.AddInterceptors(new QueryLoggingInterceptor(
+        serviceProvider.GetRequiredService<ICategoryLogger>(),
+        serviceProvider.GetRequiredService<IHostEnvironment>()));
+});
 
 // Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -100,6 +148,13 @@ builder.Services.AddScoped<IMultiTenantSettingsRepository, MultiTenantSettingsRe
 //App-wide admin settings (singleton settings row) — e.g. require-email-confirmation
 builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
 builder.Services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
+//Logging settings (SuperAdmin-only, six category rows + one retention row) + its refresh/retention-sweep hosted service
+builder.Services.AddScoped<ILoggingSettingsService, LoggingSettingsService>();
+builder.Services.AddScoped<ILoggingSettingsRepository, LoggingSettingsRepository>();
+builder.Services.AddHostedService<LoggingSettingsRefreshHostedService>();
+//System log viewer (SuperAdmin-only, reads system_logs directly — gated by LoggingSettingsPermission.Read)
+builder.Services.AddScoped<ISystemLogsService, SystemLogsService>();
+builder.Services.AddScoped<ISystemLogsRepository, SystemLogsRepository>();
 
 // Content / attachments — generic polymorphic layer (ContentItem/StoredFile are ITenantScoped,
 // so tenant isolation is automatic). Provider defaults to LocalDisk so a fresh clone works with
@@ -156,6 +211,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseMiddleware<Hekutenantcoreapp.Api.Middleware.HttpRequestLoggingMiddleware>();
+
 app.UseRequestLocalization(localizationOptions);
 app.UseCors("AllowAngularDev");
 app.UseAuthentication();
@@ -187,6 +244,11 @@ using (var scope = app.Services.CreateScope())
     // App-wide settings singleton row (require-email-confirmation off by default).
     await AppSettingsSeeder.SeedAsync(db);
 
+    // Logging category rows (one per LogCategory, sensible default minimum levels) + the
+    // retention singleton — read/updated by the SuperAdmin-only admin page and polled live by
+    // LoggingSettingsRefreshHostedService.
+    await LoggingSettingsSeeder.SeedAsync(db);
+
     // Bulk-load reference geography (countries/states/cities) from the shipped CSVs on a
     // fresh database. No-ops once each table is populated.
     await GeographySeeder.SeedAsync(db);
@@ -217,7 +279,7 @@ using (var scope = app.Services.CreateScope())
     var adminRole = await roleManager.FindByNameAsync("Admin");
     if (adminRole != null)
     {
-        var globalOnlyModules = new[] { nameof(TenantsPermission), nameof(RolesPermission), nameof(UserManagementPermission), nameof(MultiTenantSettingsPermission) };
+        var globalOnlyModules = new[] { nameof(TenantsPermission), nameof(RolesPermission), nameof(UserManagementPermission), nameof(MultiTenantSettingsPermission), nameof(LoggingSettingsPermission) };
 
         var adminClaims = await roleManager.GetClaimsAsync(adminRole);
 
@@ -264,9 +326,12 @@ using (var scope = app.Services.CreateScope())
         if (createResult.Succeeded)
         {
             if (string.IsNullOrEmpty(configuredPassword))
-                app.Logger.LogWarning(
-                    "Created bootstrap admin {Email} on the empty database. Temporary password: {Password} — sign in and change it now (this is logged only once).",
-                    bootstrapEmail, password);
+                // Deliberately Console.WriteLine, not app.Logger — the generated password must
+                // never enter the structured logging pipeline (console/file/DB sinks), since that
+                // persists and gets queried later. This is the one-time console line an operator
+                // watching startup sees; it is not retained anywhere logging is.
+                Console.WriteLine(
+                    $"Created bootstrap admin {bootstrapEmail} on the empty database. Temporary password: {password} — sign in and change it now (this is printed only once, and is not logged).");
             else
                 app.Logger.LogWarning(
                     "Created bootstrap admin {Email} on the empty database using the configured BootstrapAdminPassword — sign in and change it now.",
@@ -337,7 +402,14 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.Run();
+try
+{
+    app.Run();
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 // Random password for a generated bootstrap admin: 20 chars from a CSPRNG over an
 // unambiguous alphabet, plus one of each required class so it always clears the

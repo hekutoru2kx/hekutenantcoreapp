@@ -1,0 +1,58 @@
+.system-logs {
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 8px;
+}
+
+.hint {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--mat-sys-on-surface-variant, gray);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  mat-form-field {
+    width: 180px;
+  }
+
+  button {
+    margin-top: 8px;
+  }
+}
+
+.logs-table {
+  width: 100%;
+}
+
+.exception-panel {
+  margin-top: 4px;
+  max-width: 600px;
+
+  pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 12px;
+  }
+}
+
+.level-Warning {
+  color: #b26a00;
+}
+
+.level-Error,
+.level-Critical {
+  color: var(--mat-sys-error, #c00);
+}
+
+.error {
+  color: var(--mat-sys-error);
+  font-size: 13px;
+}
