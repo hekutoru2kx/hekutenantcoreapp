@@ -6,7 +6,7 @@ family (ludemia, hekucoreapp, hekutenantcoreapp, gestamind): **Pending** = queue
 
 ## Pending
 
-_(none)_
+- [ ] **Fix the 12 failing frontend unit tests (default-scaffold specs configured with no providers)** — `npx ng test --watch=false` reports **12 failed | 20 passed (19 files)**, verified 2026-09-24; identical failures to hekucoreapp and ludemia (inherited scaffold issue), fixed in gestamind 2026-09-24 — and this repo is the closest match to gestamind, so its fix carries over almost verbatim. **Full write-up — the 12 tests, both causes, the step-by-step fix, and the reference implementation — is in `D:\hekucoreapp\TASKS.md` (Pending)**; follow it here. Differences for this repo: (1) `CurrentUser` has 7 fields (`email`, `userName`, `mustChangePassword`, `preferredTheme`, `tenantId`, `tenantName`, `multiTenantDisabled`), and `app.ts` has the "signed in with no tenant → redirect to `/tenant-picker`" backstop effect, so the `app.spec.ts` signed-in fixture **must set a non-null `tenantId`** (gestamind uses `tenantId: 1, tenantName: 'Clinic', multiTenantDisabled: false, preferredTheme: 'light'`) or the test navigates away mid-assertion; (2) the helper can import `AVAILABLE_LANGUAGES` from `constants/languages.ts` instead of hard-coding `['en', 'es']`; (3) there is no `app-info.spec.ts` here (19 spec files, not 20). Gestamind's `app.spec.ts` is the best template for this repo's version. One session per project. _Trigger: the dedicated hekutenantcoreapp session._
 
 ## Deferred — intentional, revisit on trigger
 
