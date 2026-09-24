@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { UserManagement } from './user-management';
+import { provideTestApp } from '../../../testing/test-providers';
 
 describe('UserManagement', () => {
   let component: UserManagement;
@@ -9,6 +10,7 @@ describe('UserManagement', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [UserManagement],
+      providers: provideTestApp(),
     }).compileComponents();
 
     fixture = TestBed.createComponent(UserManagement);

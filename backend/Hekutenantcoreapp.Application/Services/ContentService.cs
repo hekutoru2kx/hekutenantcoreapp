@@ -93,14 +93,25 @@ public class ContentService : IContentService
         if (buffered.Length > maxBytes)
             throw new Exception(_localizer["ContentFileTooLarge"]);
 
-        buffered.Position = 0;
-        var detectedFormat = await Image.DetectFormatAsync(buffered);
+        // Load-and-catch rather than a DetectFormatAsync() null-check: ImageSharp 3.x throws
+        // UnknownImageFormatException for data it can't identify instead of returning null, so
+        // success/failure of the decode itself is the reliable "is this an image at all" signal.
+        Image image;
+        try
+        {
+            buffered.Position = 0;
+            image = await Image.LoadAsync(buffered);
+        }
+        catch (ImageFormatException)
+        {
+            throw new Exception(_localizer["ContentFileTypeNotAllowed"]);
+        }
+        using var _ = image;
+
+        var detectedFormat = image.Metadata.DecodedImageFormat;
         if (detectedFormat == null || !allowedTypes.Contains(detectedFormat.DefaultMimeType, StringComparer.OrdinalIgnoreCase))
             throw new Exception(_localizer["ContentFileTypeNotAllowed"]);
         var contentType = detectedFormat.DefaultMimeType;
-
-        buffered.Position = 0;
-        using var image = await Image.LoadAsync(buffered);
 
         var maxDimension = slot == ContentSlots.ProfilePicture
             ? settings.ContentAvatarMaxDimension
